@@ -1,18 +1,25 @@
 def RobertasTreeInferator(tree_outputs, classes):
-    '''
-    Receives the output of a RobertasTree model (a tensor of shape (n_classes-1, 2))
-    
-    Return the a number between -4 and 2.
+   '''
+    Elaborate the outputs of a RobertaTree model to infere the best value.
+
+    Parameters
+    ----------
+      tree_outputs : torch.tensor
+        Output of the Roberta Tree model
+
+      classes : dict
+        Dictionary with classes' name as keys and tuple with class numerical interval as values
+
+    Returns
+    -------
+      float
     '''
     
     nclasses = len(classes)
     nlayers  = int(np.log2(nclasses))
     
     normalized_outputs = torch.nn.functional.softmax(tree_outputs, dim = 1)
-    # =========== Method 1 - follow the tree ===========
-    
-    
-    # =========== Method 2 - compute probabilities and weighted sum ============
+
     layer1, layer2, layer3 = torch.split(normalized_outputs, [2**i for i in range(nlayers)], dim = 0)
     
     probabilities = {}
@@ -31,7 +38,5 @@ def RobertasTreeInferator(tree_outputs, classes):
         p *=   classes_mean_value[key] * (probabilities[key])
 
     return p
-    
-    # =========== Method 3 - compute probabilities and weighted sum with squared ==========
     
     
