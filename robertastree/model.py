@@ -5,10 +5,10 @@ from transformers import AutoModel, AutoTokenizer, AdamW
 
 
 class RobertasTreeClassifier(torch.nn.Module):
-    def __init__(self, dropout_rate=0.3):
+    def __init__(self, dropout_rate=0.3, pretrained_path = 'roberta-base'):
         super(RobertasTreeClassifier, self).__init__()
         
-        self.roberta = AutoModel.from_pretrained('roberta-base')
+        self.roberta = AutoModel.from_pretrained(pretrained_path)
         self.d1 = torch.nn.Dropout(dropout_rate)
         self.l1 = torch.nn.Linear(768, 64)
         self.bn1 = torch.nn.LayerNorm(64)
@@ -30,7 +30,7 @@ class RobertasTreeClassifier(torch.nn.Module):
 
 class RobertasTree:
     
-    def __init__(self, classes, inferator, models_path = './', device = 'cuda'):
+    def __init__(self, classes, inferator, models_path = './',):
         
         self.classes = classes
         self.n_classes = len(classes)
@@ -39,7 +39,14 @@ class RobertasTree:
         self.n_outputs = (self.n_classes-1)*2
         
         self.models_path = models_path
-        self.device = device
+
+
+        if torch.cuda.is_available():
+            self.device = 'cuda'
+        else:
+            self.device = 'cpu'
+            print("Warning! No cuda device was found. Operations will be excuted on cpu, very slowly.")
+
         
         self.classifier = RobertasTreeClassifier(0.3)
         self.classifier = self.classifier.to(device)
@@ -48,15 +55,18 @@ class RobertasTree:
     
     def predict(self, input_ids,masks):
         
-        outputs = torch.empty(0, input_ids.shape[0], 2)
-        for i in range(self.n_layers):
-            n_classifiers = 2**i
-            for j in range(n_classifiers):
-                print("DOING CLASSIFIER {}_{}".format(i,j))
-                self.classifier.load_state_dict(self.load_model(i,j))
+        self.classifier.eval()
 
-                output = self.classifier(input_ids, masks)
-                outputs = torch.cat([outputs, output.unsqueeze(axis=0)])      
+        outputs = torch.empty(0, input_ids.shape[0], 2)
+        with torch.no_grad():
+            for i in range(self.n_layers):
+                n_classifiers = 2**i
+                for j in range(n_classifiers):
+                    print("DOING CLASSIFIER {}_{}".format(i,j))
+                    self.classifier.load_state_dict(self.load_model(i,j))
+
+                    output = self.classifier(input_ids, masks)
+                    outputs = torch.cat([outputs, output.unsqueeze(axis=0)])      
         
         return outputs              
     
@@ -72,6 +82,7 @@ class RobertasTree:
         
         print("Loading classifier {}_{}...".format(i,j), end = ' ')
         self.classifier.load_state_dict(self.load_model(i,j))
+        self.classifier.eval()
         print("Done!")
         
         possible_classes = self.get_classifier_classes(i,j)
@@ -125,9 +136,10 @@ class RobertasTree:
 
 
     def train_classifier(self, i,j, trainloader, validloader, num_epochs = 5,
-                        valid_period = 100, output_path = './'):
+                        valid_period = 100, output_path = './', pretrained_path = 'roberta-base'):
     
-        # Initialize losses 
+
+        model = RobertasTreeClassifier(0.3, pretrained_path = pretrained_path)
 
         optimizer = AdamW(get_optimizer_param(self.classifier), lr = 1e-5)
         scheduler = OnFlatStepLR(...)

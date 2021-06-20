@@ -152,12 +152,10 @@ def pretrain_roberta(trainset, batch_size = 8, output_path = './', num_epochs = 
     '''
 
     if not isinstance(trainset, pd.DataFrame):
-        print("Error! The dataset should be a pandas dataframe.")
-        return False
+        raise TypeError("Error! The dataset should be a pandas dataframe.")
 
     if not trainset.columns == 'text':
-        print("Error! The dataset should contain only a column with label \" text \".")
-        return False
+        raise ValueError("Error! The dataset should contain only a column with label \" text \".")
 
 
     
@@ -181,7 +179,14 @@ def pretrain_roberta(trainset, batch_size = 8, output_path = './', num_epochs = 
 
     optimizer = AdamW(model.parameters(), lr = 5e-5)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    if torch.cuda.is_available():
+        device = 'cuda'
+    else:
+        device = 'cpu'
+        print("Warning! No cuda device was found. \
+               The pretraining will be executed on cpu, but it can take lot of time.")
+
+    model.to(device)
     model.train()
 
     # Train loop
@@ -210,6 +215,6 @@ def pretrain_roberta(trainset, batch_size = 8, output_path = './', num_epochs = 
               .format(epoch+1, num_epochs,train_loss))
                       
 
-    torch.save(model, output_path + '/pretrained.pt') 
+    model.save_pretrained(output_path + '/pretrained') 
     print('Pretraining done! The state of roberta tranformer has been saved in the folder \"{}\"'
-          .format(output_path))
+          .format(output_path + '/pretrained'))
