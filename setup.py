@@ -11,5 +11,5 @@ setup(
                     'Intended Audience :: Developers',
                     'Topic :: Software Development :: Libraries',
                     'Programming Language :: Python :: 3.7'      ],
-    setup_requires = []
+    setup_requires = ['transformers']
 )

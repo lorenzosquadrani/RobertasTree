@@ -4,9 +4,9 @@ import pandas as pd
 from transformers import AutoModel, AutoTokenizer, AdamW
 
 
-class RobertasTreeClassifier(torch.nn.Module):
+class Classifier(torch.nn.Module):
     def __init__(self, dropout_rate=0.3, pretrained_path = 'roberta-base'):
-        super(RobertasTreeClassifier, self).__init__()
+        super(Classifier, self).__init__()
         
         self.roberta = AutoModel.from_pretrained(pretrained_path)
         self.d1 = torch.nn.Dropout(dropout_rate)
@@ -28,7 +28,7 @@ class RobertasTreeClassifier(torch.nn.Module):
 
 
 
-class RobertasTree:
+class Tree:
     
     def __init__(self, classes, inferator, models_path = './',):
         
@@ -48,8 +48,8 @@ class RobertasTree:
             print("Warning! No cuda device was found. Operations will be excuted on cpu, very slowly.")
 
         
-        self.classifier = RobertasTreeClassifier(0.3)
-        self.classifier = self.classifier.to(device)
+        self.classifier = Classifier(0.3)
+        self.classifier = self.classifier.to(self.device)
         
         self.inferator = inferator
     
