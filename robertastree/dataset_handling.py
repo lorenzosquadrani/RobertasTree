@@ -56,6 +56,8 @@ class RobertasTreeDatasetForTrain(Dataset):
 
 
 
+
+
 def get_criteria(dataset,classes, i, j):
     
 
@@ -71,6 +73,8 @@ def get_criteria(dataset,classes, i, j):
         criteria2 = criteria2 | (dataset["label"] == label2)
     
     return criteria1, criteria2
+
+
 
 
 
@@ -91,3 +95,49 @@ def balance_dataset(dataset):
             )
     
     return balanced_dataset.sample(frac = 1).reset_index()
+
+
+
+def from_range_to_classes(targets, n_classes, value_range = None):
+    '''
+    Divide a numerical range in a given number of intervals, and gives the correspondent labels to a Series
+    of numerical values.
+
+    Parameters
+    ----------
+      targets : pandas.Series
+        Targets of the training samples
+
+      n_classes : int
+        Number of desired classes
+
+      value_range : float tuple
+        The range to divide in classes. If None, the minimum and maximum value from targets are used.
+
+    Returns
+    -------
+      labels : pandas.Series
+        The series containing labels of the training samples in place of the targets
+
+      classes : dict
+        The classes labels with the correspondent numerical range (as a float tuple)
+    '''
+
+    if value_range is None:
+        value_range = (targets.min(), targets.max())
+    
+    x = np.linspace(value_range[0], value_range[1], n_classes +1 )
+    classes = {}
+    for i in range(n_classes):
+        classes[ str(i) ] = (x[i], x[i+1])
+
+    def get_class(value):
+    
+        for key in classes:
+            if (value>= classes[key][0] and value<=classes[key][1]):
+                return int(key)
+        raise ValueError("Find a value out of range! I don't feel like going on...")
+        
+    labels = targets.apply(get_class)
+    
+    return labels, classes
