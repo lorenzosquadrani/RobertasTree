@@ -1,8 +1,10 @@
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
+import numpy as np
+import pandas as pd
 
 
-class RobertasTreeDatasetForTest(Dataset):
+class RobertasTreeDatasetForInference(Dataset):
     
     def __init__(self, dataset):
         
@@ -29,32 +31,71 @@ class RobertasTreeDatasetForTest(Dataset):
 
 
 
-class RobertasTreeDatasetForTrain(Dataset):
+class RobertasTreeDatasetForClassification(Dataset):
     
-    def __init__(self, dataset):
+    def __init__(self, data, tokenizer, max_len):
         
-        self.tokenizer = AutoTokenizer.from_pretrained('roberta-base')
-        
-        self.robertas_data = self.tokenizer(dataset.excerpt.tolist(), 
-                            padding = True, 
-                            truncation = True,
-                            return_tensors = 'pt')
-        
-        self.labels = dataset.label.tolist()
-        
+        self.tokenizer = tokenizer
+        self.max_len = max_len
+
+        self.excerpts = data.excerpts.values.tolist()
+        self.labels = data.labels.values.tolist()
+
     
     def __len__(self):
         return len(self.labels)
     
     def __getitem__(self, idx):       
             
-        attention_mask = torch.tensor(self.robertas_data['attention_mask'][idx])
-        input_ids =  torch.tensor(self.robertas_data['input_ids'][idx])
-        labels = self.labels[idx]
+        excerpt, label = self.excerpts[item], self.targets[item]
+        features = self.tokenize(excerpt)
+
+        return {
+            'input_ids':torch.tensor(features['input_ids'], dtype=torch.long),
+            'attention_mask':torch.tensor(features['attention_mask'], dtype=torch.long),
+            'label':torch.tensor(label, dtype=torch.double),
+        }
+
+
+    def tokenize(self, data):
+        data = data.replace('\n', '')
+    
+        tok = self.tokenizer.encode_plus(
+            data, 
+            max_length=self.max_len, 
+            truncation=True,
+            return_attention_mask=True,
+        )
         
-        return attention_mask, input_ids,labels
+        padding_length = max_len - len(tok['input_ids'])
+        tok['input_ids'] = tok['input_ids'] + ([0] * padding_length)
+        tok['attention_mask'] = tok['attention_mask'] + ([0] * padding_length)
+        return tok
+
+        
 
 
+
+def get_subdatasets(dataset, i,j, test_frac = 0., random_state = 0):
+
+    criteria1, criteria2 = get_criteria(dataset,classes, i , j)
+    
+    subdataset1 = dataset[criteria1]
+    subdataset2 = dataset[criteria2]
+    
+    subdataset1["label"] = 0
+    subdataset2["label"] = 1
+    
+    new_dataset = pd.concat([subdataset1,subdataset2], axis=0).sample(frac = 1)
+
+    if test_frac != 0:
+        trainset,testset = train_test_split(new_dataset, 
+                                            test_size = test_frac, 
+                                            random_state = random_state, 
+                                            tratify = new_dataset.label)  
+        return trainset,testset
+    else:
+        return new_dataset
 
 
 

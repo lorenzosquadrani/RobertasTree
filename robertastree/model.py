@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import pandas as pd
 from transformers import AutoModel, AutoTokenizer, AdamW
+from transformers import get_cosine_schedule_with_warmup
 
 
 class Classifier(torch.nn.Module):
@@ -30,7 +31,7 @@ class Classifier(torch.nn.Module):
 
 class Tree:
     
-    def __init__(self, classes, inferator, models_path = './',):
+    def __init__(self, classes, inferator, models_path = './', pretrained_path = 'roberta-base'):
         
         self.classes = classes
         self.n_classes = len(classes)
@@ -48,7 +49,7 @@ class Tree:
             print("Warning! No cuda device was found. Operations will be excuted on cpu, very slowly.")
 
         
-        self.classifier = Classifier(0.3)
+        self.classifier = Classifier(dropout_rate = 0.3, pretrained_path = pretrained_path)
         self.classifier = self.classifier.to(self.device)
         
         self.inferator = inferator
@@ -78,7 +79,7 @@ class Tree:
     
 
 
-    def test_classifier(i,j, testloader):
+    def test_classifier(self, i,j, testloader):
         
         print("Loading classifier {}_{}...".format(i,j), end = ' ')
         self.classifier.load_state_dict(self.load_model(i,j))
@@ -142,7 +143,7 @@ class Tree:
         model = RobertasTreeClassifier(0.3, pretrained_path = pretrained_path)
 
         optimizer = AdamW(get_optimizer_param(self.classifier), lr = 1e-5)
-        scheduler = OnFlatStepLR(...)
+        scheduler = get_cosine_schedule_with_warmup(optmizer, num_training_steps = num_epochs)
 
         train_loss = 0.0
 
@@ -216,5 +217,5 @@ class Tree:
                             
                     train_loss = 0.0                
                     model.train()
-            scheduler.step(valid_loss, self.classifier)
+            scheduler.step()
         print('Training done!')
