@@ -1,6 +1,6 @@
 | **Authors**  | **Project** |  **Documentation** | **Build Status** | **Code Quality** | **Coverage** |
 |:------------:|:-----------:|:------------------:|:----------------:|:----------------:|:------------:|
-| [**L. Squadrani**](https://github.com/lorenzosquadrani) <br/> | **RobertasTree** <br/> | **Docs:**  | **Windows:** <br/> [![Windows plasticity CI](https://github.com/Nico-Curti/plasticity/actions/workflows/windows.yml/badge.svg)](https://github.com/Nico-Curti/plasticity/actions/workflows/windows.yml) <br/> **Linux:** <br/> | **Codacy:** <br/> <br/> **Codebeat:** <br/>  | **CodeCov:** <br/>  |
+| [**L. Squadrani**](https://github.com/lorenzosquadrani) <br/> | **RobertasTree** <br/> | **Docs:**  |  **Linux:** <br/> | **Codacy:** <br/> <br/> **Codebeat:** <br/>  | **CodeCov:** <br/>  |
 
 
 <a href="https://www.google.com/search?q=pera&oq=pera&aqs=chrome..69i57.783j0j1&sourceid=chrome&ie=UTF-8">
