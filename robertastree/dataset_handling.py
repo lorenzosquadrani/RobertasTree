@@ -131,9 +131,23 @@ def get_criteria(dataset, i, j):
 
 
 def balance_dataset(dataset):
-    counts = list(dataset.label.value_counts())
-    labels = list(dataset.label.value_counts().keys())
+    '''
+    Receive a dataset with labelled samples and balance it. 
+    The mean number of samples per label, N, is computed. 
+    Over-sampling and under-sampling are performed until 
+    the number of samples per each label is identically equal to N.
 
+    Parameters
+    ----------
+      dataset : pandas.DataFrame
+        The dataset to balance. Must contain a column named "label".
+
+    Returns
+    -------
+      balanced_dataset : pandas.DataFrame
+        The balanced version of the initial dataset. Samples are shuffled.
+    '''
+    counts = list(dataset.label.value_counts())
     mean_count = sum(counts) // len(counts)
 
     subdata = {}
@@ -142,8 +156,8 @@ def balance_dataset(dataset):
         subdata[label] = dataset[dataset.label == label]
 
     balanced_dataset = pd.concat(
-        [subdata[label].sample(mean_count, replace=True) for label in subdata], axis=0
-    )
+        [subdata[label].sample(mean_count, replace=True) for label in subdata],
+        axis=0)
 
     return balanced_dataset.sample(frac=1).reset_index()
 
