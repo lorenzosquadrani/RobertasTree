@@ -2,7 +2,8 @@
 
 from RobertasTree.dataset_handling import (
     from_range_to_classes,
-    balance_dataset
+    balance_dataset,
+    get_criteria
 )
 
 import pandas as pd
@@ -68,3 +69,25 @@ def test_final_dataset_is_balanced():
 
     for x in balanced_dataset.value_counts():
         assert x == mean_count
+
+
+# Tests for function get_criteria
+
+def test_correct_criteria():
+    '''
+    Positive unit test.
+
+    Verify that, for a toy example, the right number 
+    of samples are selected for each classifier.
+    '''
+
+    dataset = pd.DataFrame({"label": [0, 1, 2, 3, 4, 5, 6, 7]})
+
+    n_layers = 3
+
+    for i in range(n_layers):
+        for j in range(2**i):
+            criteria1, criteria2 = get_criteria(dataset, i, j)
+
+            assert criteria1.array.sum() == 8 / 2**(i + 1)
+            assert criteria2.array.sum() == 8 / 2**(i + 1)

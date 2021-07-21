@@ -7,7 +7,6 @@ import pandas as pd
 
 
 class RobertasTreeDatasetForInference(Dataset):
-
     def __init__(self, dataset):
 
         self.tokenizer = AutoTokenizer.from_pretrained('roberta-base')
@@ -113,6 +112,28 @@ def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
 
 
 def get_criteria(dataset, i, j):
+    '''
+    Get two boolean pandas series, which can be used to select the 
+    samples beloging to the two classes of classifier i,j of a 
+    Roberta's tree.
+
+    Parameters
+    ----------------------
+    dataset : pandas.DataFrame
+        The dataset from which samples will be selected. Must have a column named 'label'.
+        The number of different labels must be a power of 2.
+
+    i : int
+
+    j : int
+
+
+    Returns
+    -----------------------
+    criteria1 : pandas.Series
+
+    criteria2 : pandas.Series
+    '''
 
     classes = dataset.label.unique()
     classes.sort()
