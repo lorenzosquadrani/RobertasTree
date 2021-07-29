@@ -88,7 +88,28 @@ class RobertasTreeDatasetForClassification(Dataset):
 
 def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
     '''
+    From the dataset with all samples, extract the samples on which classifier i,j should be trained. 
+    Samples are already organized in two classes, with labels 0 and 1.
 
+    Parameters
+    ---------------------
+    dataset : pandas.DataFrame
+
+    i : int
+
+    j : int
+
+    test_frac : float
+
+    random_state : int
+
+
+    Return 
+    ----------------------
+
+    if test_frac != 0 :  (pd.Dataframe, pd.Dataframe) 
+
+    else              :   pd.Dataframe  
     '''
 
     criteria1, criteria2 = get_criteria(dataset, i, j)
