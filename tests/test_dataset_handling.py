@@ -1,6 +1,6 @@
-# Tests for RobertasTree.dataset_handling module
+# Tests for robertastree.dataset_handling module
 
-from RobertasTree.dataset_handling import (
+from robertastree.dataset_handling import (
     from_range_to_classes,
     balance_dataset,
     get_criteria
@@ -25,7 +25,7 @@ def test_correct_classes_and_labels():
                                             n_classes=n_classes,
                                             value_range=value_range)
 
-    assert len(classes.keys) == 10
+    assert len(classes.keys()) == 10
 
     for key in classes:
         assert classes[key][1] - classes[key][0] == 10
@@ -67,7 +67,7 @@ def test_final_dataset_is_balanced():
 
     balanced_dataset = balance_dataset(dataset)
 
-    for x in balanced_dataset.value_counts():
+    for x in balanced_dataset.label.value_counts():
         assert x == mean_count
 
 

@@ -36,7 +36,7 @@ def WeightedAverageInferator(tree_outputs, classes):
     for i in range(2):
         for j in range(2):
             for k in range(2):
-                probabilities[str(4 * i + 2 * j + k)] = (layer1[0, i] * layer2[i, j] * layer3[2 * i + j, k]).item()
+                probabilities[4 * i + 2 * j + k] = (layer1[0, i] * layer2[i, j] * layer3[2 * i + j, k]).item()
 
     # get the mid point of the range of each class
     classes_mean_value = {}
@@ -44,9 +44,8 @@ def WeightedAverageInferator(tree_outputs, classes):
         classes_mean_value[key] = (classes[key][0] + classes[key][1]) / 2
 
     # regression: weighted average of the midpoints
-    p = 1
+    p = 0.
     for key in classes:
-        print(probabilities[key])
-        p *= classes_mean_value[key] * (probabilities[key])
+        p += classes_mean_value[key] * (probabilities[key])
 
     return p
