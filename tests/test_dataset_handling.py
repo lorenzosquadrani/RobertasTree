@@ -89,5 +89,5 @@ def test_correct_criteria():
         for j in range(2**i):
             criteria1, criteria2 = get_criteria(dataset, i, j)
 
-            assert criteria1.array.sum() == 8 / 2**(i + 1)
-            assert criteria2.array.sum() == 8 / 2**(i + 1)
+            assert criteria1.sum() == 8 / 2**(i + 1)
+            assert criteria2.sum() == 8 / 2**(i + 1)

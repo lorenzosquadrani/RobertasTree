@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-from transformers import AutoTokenizer
+from transformers import RobertaTokenizer
 from sklearn.model_selection import train_test_split
 import torch
 import numpy as np
@@ -9,7 +9,7 @@ import pandas as pd
 class RobertasTreeDatasetForInference(Dataset):
     def __init__(self, dataset):
 
-        self.tokenizer = AutoTokenizer.from_pretrained('roberta-base')
+        self.tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
 
         self.robertas_data = self.tokenizer(dataset.excerpt.tolist(),
                                             padding=True,
@@ -48,10 +48,10 @@ class RobertasTreeDatasetForClassification(Dataset):
             padded/truncated to it.    
     '''
 
-    def __init__(self, data, tokenizer, max_len):
+    def __init__(self, data):
 
-        self.tokenizer = tokenizer
-        self.max_len = max_len
+        self.tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+        self.max_len = 300
 
         self.excerpts = data.excerpt.values.tolist()
         self.labels = data.label.values.tolist()
@@ -134,7 +134,7 @@ def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
 
 def get_criteria(dataset, i, j):
     '''
-    Get two boolean pandas series, which can be used to select the 
+    Produce two boolean 1D numpy array, which can be used to select the 
     samples beloging to the two classes of classifier i,j of a 
     Roberta's tree.
 
@@ -151,9 +151,9 @@ def get_criteria(dataset, i, j):
 
     Returns
     -----------------------
-    criteria1 : pandas.Series
+    criteria1 : numpy.array
 
-    criteria2 : pandas.Series
+    criteria2 : numpy.array
     '''
 
     classes = dataset.label.unique()
@@ -163,11 +163,11 @@ def get_criteria(dataset, i, j):
 
     first_class, second_class = possible_classes[2 * j], possible_classes[2 * j + 1]
 
-    criteria1 = pd.Series(np.full(len(dataset), False))
-    criteria2 = pd.Series(np.full(len(dataset), False))
+    criteria1 = np.full(len(dataset), False)
+    criteria2 = np.full(len(dataset), False)
     for label1, label2 in zip(first_class, second_class):
-        criteria1 = criteria1 | (dataset["label"] == label1)
-        criteria2 = criteria2 | (dataset["label"] == label2)
+        criteria1 = criteria1 | (dataset["label"] == label1).values
+        criteria2 = criteria2 | (dataset["label"] == label2).values
 
     return criteria1, criteria2
 

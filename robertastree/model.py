@@ -1,8 +1,10 @@
 import torch
 import numpy as np
-from transformers import AutoModel, AdamW
+from transformers import AdamW
 from transformers import get_cosine_schedule_with_warmup
 from tqdm import tqdm
+import robertastree.dataset_handling as dh
+from torch.utils.data import DataLoader
 
 
 class Tree:
@@ -21,20 +23,25 @@ class Tree:
     pretrained_path : str
     '''
 
-    def __init__(self, classifier, n_classes, models_path='./', pretrained_path='roberta-base'):
+    def __init__(self, classifier, trainset, validset,
+                 models_path='./', pretrained_path='roberta-base'):
 
-        self.n_classes = n_classes
-        self.pretrained_path = pretrained_path
+        self.n_classes = len(trainset.label.unique())
         self.n_layers = int(np.log2(self.n_classes))
         self.n_outputs = (self.n_classes - 1) * 2
+
+        self.trainset = trainset
+        self.validset = validset
+
+        self.pretrained_path = pretrained_path
         self.models_path = models_path
 
         if torch.cuda.is_available():
             self.device = 'cuda'
+            print("Found GPU {} . I will use it.".format(torch.cuda.get_device_name(0)))
         else:
             self.device = 'cpu'
-            print("Warning! No cuda device was found. \
-                    Operations will be executed on cpu, very slowly.")
+            print("Warning! No cuda device was found. Operations will be executed on cpu, very slowly.")
 
         self.classifier = classifier
         self.classifier = self.classifier.to(self.device)
@@ -75,7 +82,7 @@ class Tree:
         j : int
 
         '''
-        return torch.load(self.models_path + 'classifier' + str(i) + '_' + str(j) + 'bin',
+        return torch.load(self.models_path + 'classifier' + str(i) + '_' + str(j) + '.bin',
                           map_location=self.device)
 
     def test_classifier(self, i, j, testloader):
@@ -128,19 +135,29 @@ class Tree:
                     total += 1
         return n_correct, n_wrong, n_correct_notin, n_wrong
 
-    def get_classifier_classes(self, i, j):
+    def _get_classifier_classes(self, i, j):
         classes = np.arange(0, self.n_classes)
         possible_classes = np.split(classes, 2**(i + 1))
         first_class = tuple(possible_classes[2 * j])
         second_class = tuple(possible_classes[2 * j + 1])
         return first_class, second_class
 
-    def train_classifier(self, i, j, trainloader, validloader, num_epochs=5,
-                         valid_period=100, output_path='./'):
+    def train_classifier(self, i, j, batch_size, num_epochs=5,
+                         valid_period=100):
 
-        model = self.classifier(pretrained_path=self.pretrained_path)
+        trainloader = DataLoader(
+            dh.RobertasTreeDatasetForClassification(dh.get_subdatasets(self.trainset, i, j)),
+            batch_size=batch_size,
+            shuffle=True)
 
-        optimizer = AdamW(model.parameters(), lr=5e-5, weight_decay=1e-4)
+        validloader = DataLoader(
+            dh.RobertasTreeDatasetForClassification(dh.get_subdatasets(self.validset, i, j)),
+            batch_size=batch_size)
+
+        # TODO: handle the initial weights
+        #self.classifier.load_state_dict(self.load_model(i, j))
+
+        optimizer = AdamW(self.classifier.parameters(), lr=5e-5, weight_decay=1e-4)
         scheduler = get_cosine_schedule_with_warmup(optimizer,
                                                     num_warmup_steps=0,
                                                     num_training_steps=num_epochs)
@@ -149,7 +166,7 @@ class Tree:
         best_valid_loss = float('Inf')
         global_step = 0
 
-        model.train()
+        self.classifier.train()
         # Train loop
         for epoch in range(num_epochs):
             train_count = 0
@@ -159,8 +176,8 @@ class Tree:
                 attention_mask = batch_data['attention_mask'].to(self.device)
                 labels = batch_data['label'].to(self.device)
 
-                y_pred = model(input_ids=input_ids,
-                               attention_mask=attention_mask)
+                y_pred = self.classifier(input_ids=input_ids,
+                                         attention_mask=attention_mask)
 
                 loss = torch.nn.CrossEntropyLoss()(y_pred, labels)
                 loss.backward()
@@ -175,7 +192,7 @@ class Tree:
                 train_count += 1
                 # Validation loop. Save progress and evaluate model performance.
                 if global_step % valid_period == 0:
-                    model.eval()
+                    self.classifier.eval()
 
                     right = 0
                     total = 0
@@ -188,15 +205,14 @@ class Tree:
                                 self.device)
                             labels = batch_data['label'].to(self.device)
 
-                            y_pred = model(input_ids=input_ids,
-                                           attention_mask=attention_mask)
+                            y_pred = self.classifier(input_ids=input_ids,
+                                                     attention_mask=attention_mask)
 
                             loss = torch.nn.CrossEntropyLoss()(y_pred, labels)
                             valid_loss += loss.item()
 
                             total += len(labels)
-                            right += (y_pred.argmax(axis=-1)
-                                      == labels).sum().item()
+                            right += (y_pred.argmax(axis=-1) == labels).sum().item()
 
                     # mean train and validation loss
                     current_train_loss = train_loss / valid_period
@@ -213,10 +229,10 @@ class Tree:
                     if current_valid_loss < best_valid_loss:
                         print("Saved model with best validation loss!")
                         best_valid_loss = current_valid_loss
-                        torch.save(model.state_dict(),
-                                   output_path + "classifier{}_{}.bin".format(i, j))
+                        torch.save(self.classifier.state_dict(),
+                                   self.models_path + "classifier{}_{}.bin".format(i, j))
 
                     train_loss = 0.0
-                    model.train()
+                    self.classifier.train()
             scheduler.step()
         print('Training done!')
