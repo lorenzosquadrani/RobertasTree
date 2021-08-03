@@ -61,7 +61,19 @@ python setup.py develop --user
 ```
 
 ## Usage
-TO DO
+Here there is the pipeline to apply a RobertasTree model on CommonLitReadibilityPrize regression task (I do not recommend to try it on your easy-running-out-of-memory laptop. Use Google Colab instead.)
+
+First we prepare the dataset. We load the competitition csv, convert the targets into class labels using the apposite function in from_range_to_classes.
+
+```python
+import pandas as pd
+from robertastree.dataset_handling import from_range_to_classes
+
+dataset = pd.read_csv('/content/train.csv')
+dataset["label"], classes = from_range_to_classes(dataset['target'], 
+                                                  n_classes=8,
+                                                  value_range=(-4., 2.))
+```
 
 ## Testing
 TO DO
