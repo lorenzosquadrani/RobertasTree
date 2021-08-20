@@ -74,6 +74,50 @@ dataset["label"], classes = from_range_to_classes(dataset['target'],
                                                   n_classes=8,
                                                   value_range=(-4., 2.))
 ```
+Eventually, you can split the dataset in a training set and a validation set.
+```python
+from sklearn.model_selection import train_test_split
+
+trainset, validset = train_test_split(dataset, test_size = 0.2, random_state = 42)
+```
+
+Before creating the tree, you have to define your Pytorch classifier. Here, I use the one me and my team designed for the CommonLit competition.
+```python
+import torch
+from transformers import AutoModel
+
+class CommonLitClassifier(torch.nn.Module):
+    def __init__(self, dropout_rate=0.3):
+        super(CommonLitClassifier, self).__init__()
+        
+        self.roberta = AutoModel.from_pretrained('roberta-base')
+        self.d1 = torch.nn.Dropout(dropout_rate)
+        self.l1 = torch.nn.Linear(768, 64)
+        self.bn1 = torch.nn.LayerNorm(64)
+        self.d2 = torch.nn.Dropout(dropout_rate)
+        self.l2 = torch.nn.Linear(64, 2)
+        
+    def forward(self, input_ids, attention_mask):
+        x = self.roberta(input_ids=input_ids, attention_mask=attention_mask).pooler_output
+        x = self.d1(x)
+        x = (self.l1(x))
+        x = self.bn1(x)
+        x = torch.nn.Tanh()(x)
+        x = self.d2(x)
+        x = self.l2(x)
+        
+        return x
+
+classifier = CommonLitClassifier()
+```
+
+Now create the tree.
+```python
+from robertastree import Tree
+tree = Tree(classifier=classifier,
+            trainset=trainset,
+            validset=validset)
+```
 
 ## Testing
 TO DO
