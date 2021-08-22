@@ -26,7 +26,7 @@ class Tree:
     '''
 
     def __init__(self, classifier, trainset, validset=None,
-                 models_path='./', pretrained_path='roberta-base'):
+                 models_path='./'):
 
         self.n_classes = len(trainset.label.unique())
         self.n_layers = int(np.log2(self.n_classes))
@@ -35,7 +35,6 @@ class Tree:
         self.trainset = trainset
         self.validset = validset
 
-        self.pretrained_path = pretrained_path
         self.models_path = models_path
 
         if torch.cuda.is_available():
@@ -47,6 +46,8 @@ class Tree:
 
         self.classifier = classifier
         self.classifier = self.classifier.to(self.device)
+
+        torch.save(self.classifier.state_dict(), self.models_path + 'initial_state')
 
     def predict(self, inputs, batchsize=1):
         '''
@@ -147,6 +148,8 @@ class Tree:
     def train_classifier(self, i, j, batch_size, num_epochs=5,
                          valid_period=1):
 
+        self.classifier.load_state_dict(torch.load(self.models_path + 'initial_state'))
+
         trainloader = DataLoader(
             dh.RobertasTreeDatasetForClassification(dh.get_subdatasets(self.trainset, i, j)),
             batch_size=batch_size,
@@ -239,3 +242,14 @@ class Tree:
                     self.classifier.train()
             scheduler.step()
         print('Training done!')
+
+    def train(self, batch_size, num_epochs, valid_period):
+
+        for i in range(self.n_layers):
+            n_classifiers = 2**i
+            for j in range(n_classifiers):
+                print("=" * 10, "Training classifier {}_{}".format(i, j), "=" * 10)
+                self.train_classifier(i, j,
+                                      batch_size=batch_size,
+                                      num_epochs=num_epochs,
+                                      valid_period=valid_period)
