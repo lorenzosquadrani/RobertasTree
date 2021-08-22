@@ -16,14 +16,16 @@ class Tree:
     ------------------
     classifier : nn.Module
 
-    n_classes : int
+    trainset : pd.DataFrame
+
+    validset : pd.DataFrame
 
     models_path : str
 
     pretrained_path : str
     '''
 
-    def __init__(self, classifier, trainset, validset,
+    def __init__(self, classifier, trainset, validset=None,
                  models_path='./', pretrained_path='roberta-base'):
 
         self.n_classes = len(trainset.label.unique())
@@ -113,10 +115,10 @@ class Tree:
                     other_class = possible_classes[not choice]
 
                     # più carino ma meno efficiente
-                    #n_correct += labels[i] in  chosen_class
-                    #n_wrong += labels[i] in other_class
-                    #n_correct_notin += labels[i] > max(possible_classes[1]) and choice == 1
-                    #n_wrong_notin += labels[i] < min(possible_classes[0]) and choice == 0
+                    # n_correct += labels[i] in  chosen_class
+                    # n_wrong += labels[i] in other_class
+                    # n_correct_notin += labels[i] > max(possible_classes[1]) and choice == 1
+                    # n_wrong_notin += labels[i] < min(possible_classes[0]) and choice == 0
 
                     if label[n] in chosen_class:
                         n_correct += 1
@@ -143,7 +145,7 @@ class Tree:
         return first_class, second_class
 
     def train_classifier(self, i, j, batch_size, num_epochs=5,
-                         valid_period=100):
+                         valid_period=1):
 
         trainloader = DataLoader(
             dh.RobertasTreeDatasetForClassification(dh.get_subdatasets(self.trainset, i, j)),
@@ -155,7 +157,7 @@ class Tree:
             batch_size=batch_size)
 
         # TODO: handle the initial weights
-        #self.classifier.load_state_dict(self.load_model(i, j))
+        # self.classifier.load_state_dict(self.load_model(i, j))
 
         optimizer = AdamW(self.classifier.parameters(), lr=5e-5, weight_decay=1e-4)
         scheduler = get_cosine_schedule_with_warmup(optimizer,
@@ -167,8 +169,9 @@ class Tree:
         global_step = 0
 
         self.classifier.train()
-        # Train loop
+        # Training loop
         for epoch in range(num_epochs):
+            print("=" * 5, "Starting EPOCH [{}]".format(epoch), "=" * 5)
             train_count = 0
             for batch_data in trainloader:
 
@@ -191,7 +194,7 @@ class Tree:
                 global_step += 1
                 train_count += 1
                 # Validation loop. Save progress and evaluate model performance.
-                if global_step % valid_period == 0:
+                if (global_step % valid_period == 0) and (self.validset is not None):
                     self.classifier.eval()
 
                     right = 0
@@ -220,8 +223,8 @@ class Tree:
                     accuracy = right / total * 100
 
                     # print summary
-                    print('Epoch: [{}], Step: [{}/{}], train_loss: {:.4f}, valid_loss: {:.4f}, accuracy: {:.2f} %'
-                          .format(epoch, train_count * trainloader.batch_size,
+                    print('Step: [{}/{}], train_loss: {:.4f}, valid_loss: {:.4f}, accuracy: {:.2f} %'
+                          .format(train_count * trainloader.batch_size,
                                   len(trainloader) * trainloader.batch_size,
                                   current_train_loss, current_valid_loss, accuracy))
 

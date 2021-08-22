@@ -94,6 +94,7 @@ def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
     Parameters
     ---------------------
     dataset : pandas.DataFrame
+        The dataset containing all the samples with labels. The labels' column must be named 'label'.
 
     i : int
 
