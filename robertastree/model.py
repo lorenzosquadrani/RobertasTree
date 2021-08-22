@@ -38,7 +38,7 @@ class Tree:
 
         if torch.cuda.is_available():
             self.device = 'cuda'
-            print("Found GPU {} . I will use it.".format(torch.cuda.get_device_name(0)))
+            print("Found GPU {}. I will use it.".format(torch.cuda.get_device_name(0)))
         else:
             self.device = 'cpu'
             print("Warning! No cuda device was found. Operations will be executed on cpu, very slowly.")
@@ -199,7 +199,7 @@ class Tree:
                     valid_loss = 0.0
 
                     with torch.no_grad():
-                        for batch_data in enumerate(validloader):
+                        for batch_data in validloader:
                             input_ids = batch_data['input_ids'].to(self.device)
                             attention_mask = batch_data['attention_mask'].to(
                                 self.device)
