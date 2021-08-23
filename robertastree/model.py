@@ -281,7 +281,9 @@ class Tree:
 
                 ax.annotate("{:.3}".format(accuracy), (x, y), fontsize=15, ha='center', va='center')
 
-        plt.show()
+        fig.show()
+
+        return fig
 
     def print_status(self):
 
