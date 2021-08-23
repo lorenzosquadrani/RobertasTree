@@ -5,6 +5,7 @@ from transformers import get_cosine_schedule_with_warmup
 from tqdm import tqdm
 import robertastree.dataset_handling as dh
 from torch.utils.data import DataLoader
+import pylab as plt
 
 
 class Tree:
@@ -48,6 +49,8 @@ class Tree:
         self.classifier = self.classifier.to(self.device)
 
         torch.save(self.classifier.state_dict(), self.models_path + 'initial_state')
+
+        self.classifier_accuracy = ['?' for i in range(self.n_classes - 1)]
 
     def predict(self, inputs, batchsize=1):
         '''
@@ -237,6 +240,7 @@ class Tree:
                         best_valid_loss = current_valid_loss
                         torch.save(self.classifier.state_dict(),
                                    self.models_path + "classifier{}_{}.bin".format(i, j))
+                        self.classifier_accuracy[2 * i + j] = accuracy
 
                     train_loss = 0.0
                     self.classifier.train()
@@ -253,3 +257,40 @@ class Tree:
                                       batch_size=batch_size,
                                       num_epochs=num_epochs,
                                       valid_period=valid_period)
+
+    def plot_tree(self):
+
+        radius = 0.08
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.axis('off')
+
+        index = 0
+        for i in range(self.n_layers):
+            n_classifiers = 2**i
+            y = (1. / 4) * (3 - i)
+            for j in range(n_classifiers):
+                x = (1. / (n_classifiers + 1)) * (j + 1)
+
+                accuracy = self.classifier_accuracy[index]
+                index += 1
+                color = 'red' if accuracy == '?' else 'green'
+
+                circle = plt.Circle((x, y), radius=radius, facecolor=color, alpha=0.5)
+                ax.add_patch(circle)
+
+                ax.annotate("{:.3}".format(accuracy), (x, y), fontsize=15, ha='center', va='center')
+
+        fig.show()
+
+        return fig
+
+    def print_status(self):
+
+        index = 0
+
+        for i in range(self.n_layers):
+            n_classifiers = 2**i
+            for j in range(n_classifiers):
+                print("Classifier [{},{}]: accuracy [{:.3}]".format(i, j, self.classifier_accuracy[index]))
+                index += 1
