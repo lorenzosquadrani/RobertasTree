@@ -265,19 +265,30 @@ class Tree:
         fig, ax = plt.subplots(figsize=(10, 10))
         ax.axis('off')
 
+        index = 0
         for i in range(self.n_layers):
             n_classifiers = 2**i
             y = (1. / 4) * (3 - i)
             for j in range(n_classifiers):
                 x = (1. / (n_classifiers + 1)) * (j + 1)
 
-                index = 2 * i + j
                 accuracy = self.classifier_accuracy[index]
+                index += 1
                 color = 'red' if accuracy == '?' else 'green'
 
                 circle = plt.Circle((x, y), radius=radius, facecolor=color, alpha=0.5)
                 ax.add_patch(circle)
 
-                ax.annotate("{}".format(accuracy), (x, y), fontsize=15, ha='center', va='center')
+                ax.annotate("{:.1%}".format(accuracy), (x, y), fontsize=15, ha='center', va='center')
 
         plt.show()
+
+    def print_status(self):
+
+        index = 0
+
+        for i in range(self.n_layers):
+            n_classifiers = 2**i
+            for j in range(n_classifiers):
+                print("Classifier [{},{}]: accuracy [{}]".format(i, j, self.classifier_accuracy[index]))
+                index += 1
