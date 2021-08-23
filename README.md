@@ -1,6 +1,6 @@
 | **Authors**  | **Project** |  **Documentation** | **Build Status** | **Code Quality** | **Coverage** |
 |:------------:|:-----------:|:------------------:|:----------------:|:----------------:|:------------:|
-| [**L. Squadrani**](https://github.com/lorenzosquadrani) <br/> | **RobertasTree** <br/> | **Docs:**  |  **Linux:** <br/> | **Codacy:** <br/> <br/> **Codebeat:** <br/>  | **CodeCov:** <br/>  |
+| [**L. Squadrani**](https://github.com/lorenzosquadrani) <br/> | **RobertasTree** <br/> | **Docs:**  |  **Linux:** <br/> | **Codacy:** <br/> [![Codacy Badge](https://app.codacy.com/project/badge/Grade/54f36e77426e4620b7dd9f8a1b184fbb)](https://www.codacy.com/gh/lorenzosquadrani/RobertasTree/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=lorenzosquadrani/RobertasTree&amp;utm_campaign=Badge_Grade) <br/> **Codebeat:** <br/>  | **CodeCov:** <br/>  |
 
 
 <a href="https://www.google.com/search?q=pera&oq=pera&aqs=chrome..69i57.783j0j1&sourceid=chrome&ie=UTF-8">
