@@ -279,7 +279,7 @@ class Tree:
                 circle = plt.Circle((x, y), radius=radius, facecolor=color, alpha=0.5)
                 ax.add_patch(circle)
 
-                ax.annotate("{:.1%}".format(accuracy), (x, y), fontsize=15, ha='center', va='center')
+                ax.annotate("{:.3}".format(accuracy), (x, y), fontsize=15, ha='center', va='center')
 
         plt.show()
 
@@ -290,5 +290,5 @@ class Tree:
         for i in range(self.n_layers):
             n_classifiers = 2**i
             for j in range(n_classifiers):
-                print("Classifier [{},{}]: accuracy [{}]".format(i, j, self.classifier_accuracy[index]))
+                print("Classifier [{},{}]: accuracy [{:.3}]".format(i, j, self.classifier_accuracy[index]))
                 index += 1
