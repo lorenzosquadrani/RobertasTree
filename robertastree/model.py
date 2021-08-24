@@ -295,16 +295,13 @@ class Tree:
 
         print('Training of classifier [{},{}] completed!'.format(i, j))
 
-    def train(self, batch_size, num_epochs, valid_period):
+    def train(self):
 
         for i in range(self.n_layers):
             n_classifiers = 2**i
             for j in range(n_classifiers):
                 print("=" * 10, "Training classifier {}_{}".format(i, j), "=" * 10)
-                self.train_classifier(i, j,
-                                      batch_size=batch_size,
-                                      num_epochs=num_epochs,
-                                      valid_period=valid_period)
+                self.train_classifier(i, j)
                 gc.collect()
 
     def plot_tree(self):
