@@ -8,6 +8,7 @@ import gc
 
 
 class Tree:
+
     '''
     Main class of RobertasTree library. An object Tree is designed to handle
     creation, training, predictions of all the binary classifiers.

@@ -37,15 +37,15 @@ class CommonLitDataset(Dataset):
     Parameters
     ----------
         data : pandas.Dataframe
-            Must have a columns named 'excerpt', containing texts to be 
-            classified, and a column named 'label', containing corresponding 
+            Must have a columns named 'excerpt', containing texts to be
+            classified, and a column named 'label', containing corresponding
             labels.
 
-        tokenizer : Huggingface Tokenizer 
+        tokenizer : Huggingface Tokenizer
 
         max_len : int
-            Maximum number of tokens for a text sample. All samples will be 
-            padded/truncated to it.    
+            Maximum number of tokens for a text sample. All samples will be
+            padded/truncated to it.
     '''
 
     def __init__(self, data):
@@ -88,7 +88,7 @@ class CommonLitDataset(Dataset):
 
 def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
     '''
-    From the dataset with all samples, extract the samples on which classifier i,j should be trained. 
+    From the dataset with all samples, extract the samples on which classifier i,j should be trained.
     Samples are already organized in two classes, with labels 0 and 1.
 
     Parameters
@@ -105,12 +105,12 @@ def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
     random_state : int
 
 
-    Return 
+    Return
     ----------------------
 
-    if test_frac != 0 :  (pd.Dataframe, pd.Dataframe) 
+    if test_frac != 0 :  (pd.Dataframe, pd.Dataframe)
 
-    else              :   pd.Dataframe  
+    else              :   pd.Dataframe
     '''
 
     criteria1, criteria2 = get_criteria(dataset, i, j)
@@ -135,8 +135,8 @@ def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
 
 def get_criteria(dataset, i, j):
     '''
-    Produce two boolean 1D numpy array, which can be used to select the 
-    samples beloging to the two classes of classifier i,j of a 
+    Produce two boolean 1D numpy array, which can be used to select the
+    samples beloging to the two classes of classifier i,j of a
     Roberta's tree.
 
     Parameters
@@ -175,9 +175,9 @@ def get_criteria(dataset, i, j):
 
 def balance_dataset(dataset):
     '''
-    Receive a dataset with labelled samples and balance it. 
-    The mean number of samples per label, N, is computed. 
-    Over-sampling and under-sampling are performed until 
+    Receive a dataset with labelled samples and balance it.
+    The mean number of samples per label, N, is computed.
+    Over-sampling and under-sampling are performed until
     the number of samples per each label is identically equal to N.
 
     Parameters
@@ -207,7 +207,7 @@ def balance_dataset(dataset):
 
 def from_range_to_classes(targets, n_classes, value_range=None):
     '''
-    Divide a numerical range in a given number of intervals, and gives the 
+    Divide a numerical range in a given number of intervals, and gives the
     correspondent labels to a Series of numerical values.
 
     Parameters
@@ -219,13 +219,13 @@ def from_range_to_classes(targets, n_classes, value_range=None):
         Number of desired classes
 
       value_range : float tuple
-        The range to divide in classes. If None, the minimum and maximum value 
+        The range to divide in classes. If None, the minimum and maximum value
         from targets are used.
 
     Returns
     -------
       labels : pandas.Series
-        The series containing labels of the training samples in place of the 
+        The series containing labels of the training samples in place of the
         targets
 
       classes : dict

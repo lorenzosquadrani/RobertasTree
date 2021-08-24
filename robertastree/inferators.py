@@ -3,7 +3,7 @@ import numpy as np
 
 
 def WeightedAverageInferator(tree_outputs, classes):
-    '''
+    ''' 
     Elaborate the outputs of a RobertaTree model to infere the best value.
 
     Parameters

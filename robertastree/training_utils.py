@@ -69,7 +69,7 @@ def pretrain_roberta(trainset, batch_size=8, output_path='./', num_epochs=10, ml
 
         num_epochs : int
 
-        mlm_probability : float  
+        mlm_probability : float
     '''
 
     if not isinstance(trainset, pd.DataFrame):

@@ -77,7 +77,7 @@ def test_correct_criteria():
     '''
     Positive unit test.
 
-    Verify that, for a toy example, the right number 
+    Verify that, for a toy example, the right number
     of samples are selected for each classifier.
     '''
 
