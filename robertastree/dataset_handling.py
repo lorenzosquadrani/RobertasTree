@@ -30,7 +30,7 @@ class RobertasTreeDatasetForInference(Dataset):
         return attention_mask, input_ids, ids
 
 
-class RobertasTreeDatasetForClassification(Dataset):
+class CommonLitDataset(Dataset):
     '''
     Custom Pytorch dataset for text classification.
 
@@ -64,11 +64,11 @@ class RobertasTreeDatasetForClassification(Dataset):
         excerpt, labels = self.excerpts[idx], self.labels[idx]
         features = self.tokenize(excerpt)
 
-        return {
-            'input_ids': torch.tensor(features['input_ids'], dtype=torch.long),
-            'attention_mask': torch.tensor(features['attention_mask'], dtype=torch.long),
-            'label': torch.tensor(labels, dtype=torch.long),
-        }
+        samples = {'input_ids': torch.tensor(features['input_ids'], dtype=torch.long),
+                   'attention_mask': torch.tensor(features['attention_mask'], dtype=torch.long)}
+        labels = torch.tensor(labels, dtype=torch.long)
+
+        return samples, labels
 
     def tokenize(self, data):
         data = data.replace('\n', '')

@@ -1,11 +1,10 @@
 import torch
 import numpy as np
-from transformers import AdamW
-from transformers import get_cosine_schedule_with_warmup
 from tqdm import tqdm
 import robertastree.dataset_handling as dh
 from torch.utils.data import DataLoader
 import pylab as plt
+import gc
 
 
 class Tree:
@@ -51,6 +50,8 @@ class Tree:
         torch.save(self.classifier.state_dict(), self.models_path + 'initial_state')
 
         self.classifier_accuracy = ['?' for i in range(self.n_classes - 1)]
+
+        self.configured_training = False
 
     def predict(self, inputs, batchsize=1):
         '''
@@ -148,115 +149,160 @@ class Tree:
         second_class = tuple(possible_classes[2 * j + 1])
         return first_class, second_class
 
-    def train_classifier(self, i, j, batch_size, num_epochs=5,
-                         valid_period=1):
+    def _make_loaders(self, i, j):
 
-        self.classifier.load_state_dict(torch.load(self.models_path + 'initial_state'))
+        trainloader, validloader = None, None
 
         trainloader = DataLoader(
-            dh.RobertasTreeDatasetForClassification(dh.get_subdatasets(self.trainset, i, j)),
-            batch_size=batch_size,
+            self.dataset_class(dh.get_subdatasets(self.trainset, i, j)),
+            batch_size=self.batch_size,
             shuffle=True)
 
-        validloader = DataLoader(
-            dh.RobertasTreeDatasetForClassification(dh.get_subdatasets(self.validset, i, j)),
-            batch_size=batch_size)
+        if self.validset is not None:
 
-        # TODO: handle the initial weights
-        # self.classifier.load_state_dict(self.load_model(i, j))
+            validloader = DataLoader(
+                self.dataset_class(dh.get_subdatasets(self.validset, i, j)),
+                batch_size=self.batch_size)
 
-        optimizer = AdamW(self.classifier.parameters(), lr=5e-5, weight_decay=1e-4)
-        scheduler = get_cosine_schedule_with_warmup(optimizer,
-                                                    num_warmup_steps=0,
-                                                    num_training_steps=num_epochs)
+        return trainloader, validloader
 
-        train_loss = 0.0
-        best_valid_loss = float('Inf')
-        global_step = 0
+    def configure_training(self, optimizer,
+                           dataset_class,
+                           scheduler=None,
+                           optimizer_params=None,
+                           scheduler_params=None,
+                           dataset_class_params=None,
+                           loss_function=torch.nn.CrossEntropyLoss(),
+                           batch_size=1, num_epochs=1, valid_period=None):
+
+        self.optimizer = optimizer
+        self.optimizer_params = optimizer_params if optimizer_params is not None else {}
+        self.scheduler = scheduler
+        self.scheduler_params = scheduler_params if scheduler_params is not None else {}
+        self.loss_function = loss_function
+        self.dataset_class = dataset_class
+        self.dataset_class_params = dataset_class_params if dataset_class_params is not None else {}
+        self.batch_size = batch_size
+        self.num_epochs = num_epochs
+        self.valid_period = valid_period
+
+        self.configured_training = True
+
+    def _validation_step(self, validloader):
+        self.classifier.eval()
+
+        right = 0
+        total = 0
+        loss = 0.
+
+        with torch.no_grad():
+
+            for samples, labels in validloader:
+
+                for key in samples:
+                    samples[key] = samples[key].to(self.device)
+
+                labels = labels.to(self.device)
+
+                y_pred = self.classifier(**samples)
+
+                loss_ = self.loss_function(y_pred, labels)
+                loss += loss_.item()
+
+                total += len(labels)
+                right += (y_pred.argmax(axis=-1) == labels).sum().item()
+
+                valid_loss = loss / len(validloader)
+                accuracy = right / total * 100
 
         self.classifier.train()
+
+        return valid_loss, accuracy
+
+    def train_classifier(self, i, j):
+
+        # Check training algirithm has been configured
+        if not self.configured_training:
+            print("Before starting the training, you must call the function configure_training.")
+            return None
+
+        # Reset the classifier to the initial state
+        self.classifier.load_state_dict(torch.load(self.models_path + 'initial_state'))
+
+        # Prepare dataloaders, optimizer, lr scheduler
+        trainloader, validloader = self._make_loaders(i, j)
+        optimizer = self.optimizer(self.classifier.parameters(), **self.optimizer_params)
+
+        if self.scheduler is not None:
+            scheduler = self.scheduler(optimizer, **self.scheduler_params)
+
+        global_step = 0
+        best_valid_loss = float('Inf')
+
         # Training loop
-        for epoch in range(num_epochs):
+        self.classifier.train()
+        for epoch in range(self.num_epochs):
+
             print("=" * 5, "Starting EPOCH [{}]".format(epoch), "=" * 5)
-            train_count = 0
-            for batch_data in trainloader:
 
-                input_ids = batch_data['input_ids'].to(self.device)
-                attention_mask = batch_data['attention_mask'].to(self.device)
-                labels = batch_data['label'].to(self.device)
+            train_loss = 0.
+            epoch_step = 0
 
-                y_pred = self.classifier(input_ids=input_ids,
-                                         attention_mask=attention_mask)
+            for samples, labels in trainloader:
 
-                loss = torch.nn.CrossEntropyLoss()(y_pred, labels)
+                for key in samples:
+                    samples[key] = samples[key].to(self.device)
+
+                labels = labels.to(self.device)
+
+                y_pred = self.classifier(**samples)
+
+                loss = self.loss_function(y_pred, labels)
                 loss.backward()
 
-                # Optimizer and scheduler step
                 optimizer.step()
                 optimizer.zero_grad()
 
-                # Update train loss and global step
                 train_loss += loss.item()
                 global_step += 1
-                train_count += 1
+                epoch_step += 1
+
                 # Validation loop. Save progress and evaluate model performance.
-                if (global_step % valid_period == 0) and (self.validset is not None):
-                    self.classifier.eval()
+                if (global_step % self.valid_period == 0) and (validloader is not None):
 
-                    right = 0
-                    total = 0
-                    valid_loss = 0.0
-
-                    with torch.no_grad():
-                        for batch_data in validloader:
-                            input_ids = batch_data['input_ids'].to(self.device)
-                            attention_mask = batch_data['attention_mask'].to(
-                                self.device)
-                            labels = batch_data['label'].to(self.device)
-
-                            y_pred = self.classifier(input_ids=input_ids,
-                                                     attention_mask=attention_mask)
-
-                            loss = torch.nn.CrossEntropyLoss()(y_pred, labels)
-                            valid_loss += loss.item()
-
-                            total += len(labels)
-                            right += (y_pred.argmax(axis=-1) == labels).sum().item()
-
-                    # mean train and validation loss
-                    current_train_loss = train_loss / valid_period
-                    current_valid_loss = valid_loss / len(validloader)
-                    accuracy = right / total * 100
+                    valid_loss, accuracy = self._validation_step(validloader)
 
                     # print summary
                     print('Step: [{}/{}], train_loss: {:.4f}, valid_loss: {:.4f}, accuracy: {:.2f} %'
-                          .format(train_count * trainloader.batch_size,
-                                  len(trainloader) * trainloader.batch_size,
-                                  current_train_loss, current_valid_loss, accuracy))
+                          .format(epoch_step * self.batch_size,
+                                  len(trainloader) * self.batch_size,
+                                  train_loss / epoch_step, valid_loss, accuracy))
 
                     # checkpoint
-                    if current_valid_loss < best_valid_loss:
+                    if valid_loss < best_valid_loss:
                         print("Saved model with best validation loss!")
-                        best_valid_loss = current_valid_loss
+                        best_valid_loss = valid_loss
                         torch.save(self.classifier.state_dict(),
                                    self.models_path + "classifier{}_{}.bin".format(i, j))
                         self.classifier_accuracy[2 * i + j] = accuracy
 
-                    train_loss = 0.0
-                    self.classifier.train()
-            scheduler.step()
-        print('Training done!')
+            print("train loss: {:.4f}, best validation loss: {:.4f}".format(train_loss / epoch_step,
+                                                                            best_valid_loss))
+            print("=" * 20)
 
-    def train(self, batch_size, num_epochs, valid_period):
+            if self.scheduler is not None:
+                scheduler.step()
+
+        print('Training of classifier [{},{}] completed!'.format(i, j))
+
+    def train(self):
 
         for i in range(self.n_layers):
             n_classifiers = 2**i
             for j in range(n_classifiers):
                 print("=" * 10, "Training classifier {}_{}".format(i, j), "=" * 10)
-                self.train_classifier(i, j,
-                                      batch_size=batch_size,
-                                      num_epochs=num_epochs,
-                                      valid_period=valid_period)
+                self.train_classifier(i, j)
+                gc.collect()
 
     def plot_tree(self):
 
