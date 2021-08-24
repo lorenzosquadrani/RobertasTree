@@ -4,6 +4,7 @@ from tqdm import tqdm
 import robertastree.dataset_handling as dh
 from torch.utils.data import DataLoader
 import pylab as plt
+import gc
 
 
 class Tree:
@@ -231,7 +232,9 @@ class Tree:
         # Prepare dataloaders, optimizer, lr scheduler
         trainloader, validloader = self._make_loaders(i, j)
         optimizer = self.optimizer(self.classifier.parameters(), **self.optimizer_params)
-        scheduler = self.scheduler(optimizer, **self.scheduler_params)
+
+        if self.scheduler is not None:
+            scheduler = self.scheduler(optimizer, **self.scheduler_params)
 
         global_step = 0
         best_valid_loss = float('Inf')
@@ -302,6 +305,7 @@ class Tree:
                                       batch_size=batch_size,
                                       num_epochs=num_epochs,
                                       valid_period=valid_period)
+                gc.collect()
 
     def plot_tree(self):
 
