@@ -165,10 +165,14 @@ class Tree:
 
         return trainloader, validloader
 
-    def configure_training(self, optimizer, optimizer_params,
-                           scheduler, scheduler_params, loss_function,
-                           dataset_class, dataset_class_params,
-                           batch_size, num_epochs, valid_period=None):
+    def configure_training(self, optimizer,
+                           dataset_class,
+                           scheduler=None,
+                           optimizer_params={},
+                           scheduler_params={},
+                           dataset_class_params={},
+                           loss_function=torch.nn.CrossEntropyLoss(),
+                           batch_size=1, num_epochs=1, valid_period=None):
 
         self.optimizer = optimizer
         self.optimizer_params = optimizer_params
@@ -219,6 +223,7 @@ class Tree:
         # Check training algirithm has been configured
         if not self.configured_training:
             print("Before starting the training, you must call the function configure_training.")
+            return None
 
         # Reset the classifier to the initial state
         self.classifier.load_state_dict(torch.load(self.models_path + 'initial_state'))
@@ -282,7 +287,8 @@ class Tree:
                                                                             best_valid_loss))
             print("=" * 20)
 
-            scheduler.step()
+            if self.scheduler is not None:
+                scheduler.step()
 
         print('Training of classifier [{},{}] completed!'.format(i, j))
 
