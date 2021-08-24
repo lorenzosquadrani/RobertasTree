@@ -169,19 +169,19 @@ class Tree:
     def configure_training(self, optimizer,
                            dataset_class,
                            scheduler=None,
-                           optimizer_params={},
-                           scheduler_params={},
-                           dataset_class_params={},
+                           optimizer_params=None,
+                           scheduler_params=None,
+                           dataset_class_params=None,
                            loss_function=torch.nn.CrossEntropyLoss(),
                            batch_size=1, num_epochs=1, valid_period=None):
 
         self.optimizer = optimizer
-        self.optimizer_params = optimizer_params
+        self.optimizer_params = optimizer_params if optimizer_params is not None else {}
         self.scheduler = scheduler
-        self.scheduler_params = scheduler_params
+        self.scheduler_params = scheduler_params if scheduler_params is not None else {}
         self.loss_function = loss_function
         self.dataset_class = dataset_class
-        self.dataset_class_params = dataset_class_params
+        self.dataset_class_params = dataset_class_params if dataset_class_params is not None else {}
         self.batch_size = batch_size
         self.num_epochs = num_epochs
         self.valid_period = valid_period
