@@ -4,6 +4,7 @@ __pycache__/
 
 # Unit test / coverage reports
 .coverage
+htmlcov/
 
 # Sphinx documentation
 docs/_build/

@@ -3,7 +3,8 @@
 from robertastree.dataset_handling import (
     from_range_to_classes,
     balance_dataset,
-    get_criteria
+    get_criteria,
+    get_subdatasets
 )
 
 import pandas as pd
@@ -91,3 +92,33 @@ def test_correct_criteria():
 
             assert criteria1.sum() == 8 / 2**(i + 1)
             assert criteria2.sum() == 8 / 2**(i + 1)
+
+
+def test_correct_subdatasets():
+    '''
+    Positive unit test.
+
+
+    '''
+
+    # create a toy dataset with labels 0,1,2,3 and number of samples n0,n1,n2,n3
+    toy_dataset = pd.DataFrame()
+
+    n0 = 5
+    n1 = 12
+    n2 = 14
+    n3 = 19
+
+    toy_dataset['label'] = [0, ] * n0 + [1, ] * n1 + [2, ] * n2 + [3, ] * n3
+
+    # the number of classifiers for 4 classes is 4-1 = 3, identified by
+    # (i=0, j=0), (i=1, j=0), (i=1,j=1)
+
+    # without test fraction
+    sub0_0 = get_subdatasets(toy_dataset, 0, 0)
+    sub1_0 = get_subdatasets(toy_dataset, 1, 0)
+    sub1_1 = get_subdatasets(toy_dataset, 1, 1)
+
+    assert len(sub0_0) == (n0 + n1 + n2 + n3)
+    assert len(sub1_0) == (n0 + n1)
+    assert len(sub1_1) == (n2 + n3)

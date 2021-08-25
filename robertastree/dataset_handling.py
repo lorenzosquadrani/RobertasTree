@@ -1,92 +1,8 @@
-from torch.utils.data import Dataset
-from transformers import RobertaTokenizer
-from sklearn.model_selection import train_test_split
-import torch
 import numpy as np
 import pandas as pd
 
 
-class RobertasTreeDatasetForInference(Dataset):
-    def __init__(self, dataset):
-
-        self.tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-
-        self.robertas_data = self.tokenizer(dataset.excerpt.tolist(),
-                                            padding=True,
-                                            truncation=True,
-                                            return_tensors='pt')
-
-        self.ids = dataset.id.tolist()
-
-    def __len__(self):
-        return len(self.ids)
-
-    def __getitem__(self, idx):
-
-        attention_mask = torch.tensor(self.robertas_data['attention_mask'][idx])
-        input_ids = torch.tensor(self.robertas_data['input_ids'][idx])
-        ids = self.ids[idx]
-
-        return attention_mask, input_ids, ids
-
-
-class CommonLitDataset(Dataset):
-    '''
-    Custom Pytorch dataset for text classification.
-
-    Parameters
-    ----------
-        data : pandas.Dataframe
-            Must have a columns named 'excerpt', containing texts to be
-            classified, and a column named 'label', containing corresponding
-            labels.
-
-        tokenizer : Huggingface Tokenizer
-
-        max_len : int
-            Maximum number of tokens for a text sample. All samples will be
-            padded/truncated to it.
-    '''
-
-    def __init__(self, data):
-
-        self.tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-        self.max_len = 300
-
-        self.excerpts = data.excerpt.values.tolist()
-        self.labels = data.label.values.tolist()
-
-    def __len__(self):
-        return len(self.labels)
-
-    def __getitem__(self, idx):
-
-        excerpt, labels = self.excerpts[idx], self.labels[idx]
-        features = self.tokenize(excerpt)
-
-        samples = {'input_ids': torch.tensor(features['input_ids'], dtype=torch.long),
-                   'attention_mask': torch.tensor(features['attention_mask'], dtype=torch.long)}
-        labels = torch.tensor(labels, dtype=torch.long)
-
-        return samples, labels
-
-    def tokenize(self, data):
-        data = data.replace('\n', '')
-
-        tok = self.tokenizer.encode_plus(
-            data,
-            max_length=self.max_len,
-            truncation=True,
-            return_attention_mask=True,
-        )
-
-        padding_length = self.max_len - len(tok['input_ids'])
-        tok['input_ids'] = tok['input_ids'] + ([0] * padding_length)
-        tok['attention_mask'] = tok['attention_mask'] + ([0] * padding_length)
-        return tok
-
-
-def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
+def get_subdatasets(dataset, i, j, random_state=0):
     '''
     From the dataset with all samples, extract the samples on which classifier i,j should be trained.
     Samples are already organized in two classes, with labels 0 and 1.
@@ -100,17 +16,13 @@ def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
 
     j : int
 
-    test_frac : float
-
     random_state : int
 
 
     Return
     ----------------------
 
-    if test_frac != 0 :  (pd.Dataframe, pd.Dataframe)
-
-    else              :   pd.Dataframe
+    new_dataset : pd.Dataframe
     '''
 
     criteria1, criteria2 = get_criteria(dataset, i, j)
@@ -123,14 +35,7 @@ def get_subdatasets(dataset, i, j, test_frac=0., random_state=0):
 
     new_dataset = pd.concat([subdataset1, subdataset2], axis=0).sample(frac=1)
 
-    if test_frac != 0:
-        trainset, testset = train_test_split(new_dataset,
-                                             test_size=test_frac,
-                                             random_state=random_state,
-                                             stratify=new_dataset.label)
-        return trainset, testset
-    else:
-        return new_dataset
+    return new_dataset
 
 
 def get_criteria(dataset, i, j):
