@@ -16,8 +16,7 @@
    <a href="https://www.google.com/search?q=what+you+can+find+by+clicking+on+a+pear">
       <img alt="A pear" width="100px" src="https://icons.iconarchive.com/icons/alex-t/fresh-fruit/256/pear-icon.png">
    </a>
-
-
+   
 
 ############
 RobertasTree
@@ -40,11 +39,8 @@ Each node of the tree correspond to a classifier trained to distinguish between 
 
 Such approach could be advantageous or disadvantageous according to your data. 
 In general, the advantages that you may get are the following (not verified, just guessing):
--  as the same data are utilized to train different classifier on
-   different binary class, a certain form of **data augmentation** is
-   obtained.
--  the number of parameters of the model are increased, without
-   increasing overfitting risk (I hope).
+-  as the same data are utilized to train different classifier on different binary class, a certain form of data augmentation is obtained.
+-  the number of parameters of the model are increased, without increasing overfitting risk (I hope).
 
 RobertasTree was born as a deep learning model to compete in the Kaggle competition `CommonLitReadibility <https://www.kaggle.com/c/commonlitreadabilityprize>`_.
 The first implementation was thus a task-specific, and was based on Roberta transformer (ref).
@@ -239,12 +235,12 @@ For a graphical representation run:
    tree.plot_tree()
 
 Testing
--------
+======
 
 TO DO
 
 References
-----------
+==========
 
 TO DO
 
