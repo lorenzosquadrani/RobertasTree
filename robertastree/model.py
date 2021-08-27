@@ -1,10 +1,9 @@
 import torch
 import numpy as np
-from tqdm import tqdm
-import robertastree.dataset_handling as dh
-from torch.utils.data import DataLoader
 import pylab as plt
-import gc
+
+import robertastree.dataset_handling as dh
+from robertastree.inferators import get_probabilities
 
 
 class Tree:
@@ -54,7 +53,7 @@ class Tree:
 
         self.configured_training = False
 
-    def predict(self, inputs, batchsize=1):
+    def predict(self, inputs, batchsize=1, return_probabilities=False):
         '''
         Given a batch of inputs, iteratively load all the classifiers
         and compute their outputs.
@@ -77,7 +76,10 @@ class Tree:
                     output = self.classifier(**inputs)
                     outputs = torch.cat([outputs, output.unsqueeze(axis=0)])
 
-        return outputs
+        if not return_probabilities:
+            return outputs
+        else:
+            return get_probabilities(outputs)
 
     def load_model(self, i, j):
         '''
@@ -110,7 +112,7 @@ class Tree:
         total = 0
         print("Testing...", end=' ')
         with torch.no_grad():
-            for mask, input_ids, label in tqdm(testloader):
+            for mask, input_ids, label in testloader:
                 mask, input_ids = mask.to(
                     self.device), input_ids.to(self.device)
 
@@ -154,14 +156,14 @@ class Tree:
 
         trainloader, validloader = None, None
 
-        trainloader = DataLoader(
+        trainloader = torch.utils.data.DataLoader(
             self.dataset_class(dh.get_subdatasets(self.trainset, i, j)),
             batch_size=self.batch_size,
             shuffle=True)
 
         if self.validset is not None:
 
-            validloader = DataLoader(
+            validloader = torch.utils.data.DataLoader(
                 self.dataset_class(dh.get_subdatasets(self.validset, i, j)),
                 batch_size=self.batch_size)
 
@@ -300,7 +302,6 @@ class Tree:
             for j in range(n_classifiers):
                 print("=" * 10, "Training classifier [{},{}]".format(i, j), "=" * 10)
                 self.train_classifier(i, j)
-                gc.collect()
                 print('Training of classifier [{},{}] completed!'.format(i, j))
 
     def plot_tree(self):

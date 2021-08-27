@@ -12,9 +12,9 @@
           
 
 .. image:: https://icons.iconarchive.com/icons/alex-t/fresh-fruit/256/pear-icon.png
-   :target: https://www.google.com/search?q=pera&oq=pera&aqs=chrome..69i57.436j0j9&sourceid=chrome&ie=UTF-8
+   :target: https://www.google.com/search?q=what+you+can+find+by+clicking+on+a+pear
    :alt: A pear
-   :width: 50
+   :width: 20
 
 
 
@@ -207,9 +207,9 @@ You can convert the task to a classification task with an arbitrary number of cl
    
    from robertastree.dataset_handling import from_range_to_classes
 
-   dataset["label"] = from_range_to_classes(dataset['target'], 
-                                            n_classes=N,
-                                            value_range=(a, b))
+   dataset["label"], classes = from_range_to_classes(dataset['target'], 
+                                                     n_classes=N,
+                                                   value_range=(a, b))
 
 Then proceed to training following Classification section.
 If you want to go back to a numeric prediction, you can use our inferator:
@@ -249,4 +249,3 @@ TO DO
 
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/54f36e77426e4620b7dd9f8a1b184fbb
    :target: https://www.codacy.com/gh/lorenzosquadrani/RobertasTree/dashboard?utm_source=github.com&utm_medium=referral&utm_content=lorenzosquadrani/RobertasTree&utm_campaign=Badge_Grade
- 
