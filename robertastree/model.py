@@ -244,7 +244,7 @@ class Tree:
         self.classifier.train()
         for epoch in range(self.num_epochs):
 
-            print("=" * 5, "Starting EPOCH [{}]".format(epoch), "=" * 5)
+            print("Starting EPOCH [{}]".format(epoch))
 
             train_loss = 0.
             epoch_step = 0
@@ -285,25 +285,23 @@ class Tree:
                         best_valid_loss = valid_loss
                         torch.save(self.classifier.state_dict(),
                                    self.models_path + "classifier{}_{}.bin".format(i, j))
-                        self.classifier_accuracy[2 * i + j] = accuracy
+                        self.classifier_accuracy[2**i + j - 1] = accuracy
 
             print("train loss: {:.4f}, best validation loss: {:.4f}".format(train_loss / epoch_step,
                                                                             best_valid_loss))
-            print("=" * 20)
 
             if self.scheduler is not None:
                 scheduler.step()
-
-        print('Training of classifier [{},{}] completed!'.format(i, j))
 
     def train(self):
 
         for i in range(self.n_layers):
             n_classifiers = 2**i
             for j in range(n_classifiers):
-                print("=" * 10, "Training classifier {}_{}".format(i, j), "=" * 10)
+                print("=" * 10, "Training classifier [{},{}]".format(i, j), "=" * 10)
                 self.train_classifier(i, j)
                 gc.collect()
+                print('Training of classifier [{},{}] completed!'.format(i, j))
 
     def plot_tree(self):
 
@@ -327,8 +325,6 @@ class Tree:
                 ax.add_patch(circle)
 
                 ax.annotate("{:.3}".format(accuracy), (x, y), fontsize=15, ha='center', va='center')
-
-        fig.show()
 
         return fig
 

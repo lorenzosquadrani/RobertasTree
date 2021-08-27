@@ -14,14 +14,14 @@
 .. image:: https://icons.iconarchive.com/icons/alex-t/fresh-fruit/256/pear-icon.png
    :target: https://www.google.com/search?q=pera&oq=pera&aqs=chrome..69i57.436j0j9&sourceid=chrome&ie=UTF-8
    :alt: A pear
-   :width: 100
+   :width: 50
 
 
 
 
 RobertasTree
 ============
-RobertasTree is Tree-like deep learning model for Multiclass Natural Language Classification based on Roberta (ref). It has been implemented for the Kaggle competition `CommonLitReadibility <https://www.kaggle.com/c/commonlitreadabilityprize>`_.
+RobertasTree is a framework to convert a Pytorch multi-class classifier into a tree-like deep learning model with better perfomances.
 
 .. contents:: Table of Contents:
    :local:
@@ -30,30 +30,29 @@ RobertasTree is Tree-like deep learning model for Multiclass Natural Language Cl
 Overview
 --------
 
-The idea behind RobertasTree model is very simple and general. Consider
-a N-classes classification task, where N is a power of 2. This task can
-be decomposed in N-1 binary classification tasks, organized in a
-tree-like structure like in figure. Such approach could be advantageous
-or disadvantageous according to your data. In general, the advantages
-that you may get are the following (not verified, just guessing):
+The idea behind RobertasTree is very simple and general.
+Consider a N-classes classification task, where N is a power of 2.
+This task can be decomposed in N-1 binary classification tasks, organized in a
+tree-like structure like in figure.
+Each node of the tree correspond to a classifier trained to distinguish between progressively more specific classes: the first node decides if the input belongs to class {0,...,n} or {n+1,...,N}, the first node in the second layer decides if the input belongs to class {0,...,d} or {d+1,...,n}, and so on.
 
+Such approach could be advantageous or disadvantageous according to your data. 
+In general, the advantages that you may get are the following (not verified, just guessing):
 -  as the same data are utilized to train different classifier on
    different binary class, a certain form of **data augmentation** is
    obtained.
 -  the number of parameters of the model are increased, without
    increasing overfitting risk (I hope).
 
-Unfortunately, for now my code is not as general as the idea. I
-developed a tree-like model for text classification. Classifiers are
-expected to be composed by Roberta’s transformer and a head. Training is
-implemented for the fine-tuning of this kind of model.
+RobertasTree was born as a deep learning model to compete in the Kaggle competition `CommonLitReadibility <https://www.kaggle.com/c/commonlitreadabilityprize>`_.
+The first implementation was thus a task-specific, and was based on Roberta transformer (ref).
+While the name remains RobertasTree, here we have tried to develop a general framework: custom classifier, dataset, training algorithm are allowed.
 
 Prerequisites
 -------------
 
 -  numpy
 -  pandas
--  transformers
 -  torch
 
 Installation
