@@ -11,10 +11,11 @@
      - |codacy badge|
           
 
-.. image:: https://icons.iconarchive.com/icons/alex-t/fresh-fruit/256/pear-icon.png
-   :target: https://www.google.com/search?q=what+you+can+find+by+clicking+on+a+pear
-   :alt: A pear
-   :width: 20
+.. raw:: html
+
+   <a href="https://www.google.com/search?q=what+you+can+find+by+clicking+on+a+pear">
+      <img alt="A pear" width="100px" src="https://icons.iconarchive.com/icons/alex-t/fresh-fruit/256/pear-icon.png">
+   </a>
 
 
 
