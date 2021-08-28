@@ -11,3 +11,6 @@ docs/_build/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+# tests temporary files
+temporary/

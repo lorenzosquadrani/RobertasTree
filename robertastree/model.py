@@ -15,14 +15,18 @@ class Tree:
     Parameters
     ------------------
     classifier : nn.Module
+        A custom Pytorch classifier (ref). 
+        If a cuda device is available, the classifier will be stored on GPU.
 
     trainset : pd.DataFrame
+        The dataframe must contain a column of int named "label", which will be 
+        used as samples' labels.
 
     validset : pd.DataFrame
+        The dataframe must contain a column of int named "label", which will be 
+        used as samples' labels.
 
     models_path : str
-
-    pretrained_path : str
     '''
 
     def __init__(self, classifier, trainset, validset=None,
@@ -51,7 +55,13 @@ class Tree:
 
         self.classifier_accuracy = ['?' for i in range(self.n_classes - 1)]
 
-        self.configured_training = False
+        self.configured = False
+
+    def _check_is_configured(self):
+        if not self.configured:
+            raise RuntimeError('The tree has not been configured yet.\nYou should call the function'
+                               'Tree.configure before training or testing the classifiers. See ref'
+                               ' for help.')
 
     def predict(self, inputs, batchsize=1, return_probabilities=False):
         '''
@@ -81,7 +91,7 @@ class Tree:
         else:
             return get_probabilities(outputs)
 
-    def load_model(self, i, j):
+    def load_model(self, i, j, initial=False):
         '''
         Load and return the state_dict of classifier{i}_{j}.
 
@@ -92,67 +102,26 @@ class Tree:
         j : int
 
         '''
-        return torch.load(self.models_path + 'classifier' + str(i) + '_' + str(j) + '.bin',
-                          map_location=self.device)
-
-    def test_classifier(self, i, j, testloader):
-
-        print("Loading classifier {}_{}...".format(i, j), end=' ')
-        self.classifier.load_state_dict(self.load_model(i, j))
-        self.classifier.eval()
-        print("Done!")
-
-        possible_classes = self.get_classifier_classes(i, j)
-
-        n_correct = 0
-        n_wrong = 0
-
-        n_correct_notin = 0
-        n_wrong_notin = 0
-        total = 0
-        print("Testing...", end=' ')
-        with torch.no_grad():
-            for mask, input_ids, label in testloader:
-                mask, input_ids = mask.to(
-                    self.device), input_ids.to(self.device)
-
-                output = self.classifier(mask, input_ids)
-
-                for n, choice in enumerate(output.argmax(axis=1).tolist()):
-                    chosen_class = possible_classes[choice]
-                    other_class = possible_classes[not choice]
-
-                    # più carino ma meno efficiente
-                    # n_correct += labels[i] in  chosen_class
-                    # n_wrong += labels[i] in other_class
-                    # n_correct_notin += labels[i] > max(possible_classes[1]) and choice == 1
-                    # n_wrong_notin += labels[i] < min(possible_classes[0]) and choice == 0
-
-                    if label[n] in chosen_class:
-                        n_correct += 1
-                    elif label[n] in other_class:
-                        n_wrong += 1
-                    elif label[n] > max(possible_classes[1]):
-                        if choice == 1:
-                            n_correct_notin += 1
-                        elif choice == 0:
-                            n_wrong_notin += 1
-                    elif label[n] < min(possible_classes[0]):
-                        if choice == 0:
-                            n_correct_notin += 1
-                        elif choice == 1:
-                            n_wrong_notin += 1
-                    total += 1
-        return n_correct, n_wrong, n_correct_notin, n_wrong
+        if initial:
+            torch.load(self.models_path + 'initial_state', map_location=self.device)
+        else:
+            torch.load(self.models_path + 'classifier' + str(i) + '_' + str(j) + '.bin',
+                       map_location=self.device)
 
     def _get_classifier_classes(self, i, j):
+
         classes = np.arange(0, self.n_classes)
+
+        # the classifier have to distinguish between macro-classes composed
+        # by num_classes/2**(i+1) single classes
         possible_classes = np.split(classes, 2**(i + 1))
+
         first_class = tuple(possible_classes[2 * j])
         second_class = tuple(possible_classes[2 * j + 1])
+
         return first_class, second_class
 
-    def _make_loaders(self, i, j):
+    def _make_loaders(self, i, j, trainset, validset=None):
 
         trainloader, validloader = None, None
 
@@ -161,7 +130,7 @@ class Tree:
             batch_size=self.batch_size,
             shuffle=True)
 
-        if self.validset is not None:
+        if validset is not None:
 
             validloader = torch.utils.data.DataLoader(
                 self.dataset_class(dh.get_subdatasets(self.validset, i, j)),
@@ -169,14 +138,14 @@ class Tree:
 
         return trainloader, validloader
 
-    def configure_training(self, optimizer,
-                           dataset_class,
-                           scheduler=None,
-                           optimizer_params=None,
-                           scheduler_params=None,
-                           dataset_class_params=None,
-                           loss_function=torch.nn.CrossEntropyLoss(),
-                           batch_size=1, num_epochs=1, valid_period=None):
+    def configure(self, optimizer,
+                  dataset_class,
+                  scheduler=None,
+                  optimizer_params=None,
+                  scheduler_params=None,
+                  dataset_class_params=None,
+                  loss_function=torch.nn.CrossEntropyLoss(),
+                  batch_size=1, num_epochs=1, valid_period=1):
 
         self.optimizer = optimizer
         self.optimizer_params = optimizer_params if optimizer_params is not None else {}
@@ -189,7 +158,7 @@ class Tree:
         self.num_epochs = num_epochs
         self.valid_period = valid_period
 
-        self.configured_training = True
+        self.configured = True
 
     def _validation_step(self, validloader):
         self.classifier.eval()
@@ -225,15 +194,13 @@ class Tree:
     def train_classifier(self, i, j):
 
         # Check training algirithm has been configured
-        if not self.configured_training:
-            print("Before starting the training, you must call the function configure_training.")
-            return None
+        self._check_is_configured()
 
         # Reset the classifier to the initial state
-        self.classifier.load_state_dict(torch.load(self.models_path + 'initial_state'))
+        self.load_model(i, j, initial=True)
 
         # Prepare dataloaders, optimizer, lr scheduler
-        trainloader, validloader = self._make_loaders(i, j)
+        trainloader, validloader = self._make_loaders(i, j, self.trainset, self.validset)
         optimizer = self.optimizer(self.classifier.parameters(), **self.optimizer_params)
 
         if self.scheduler is not None:
@@ -303,6 +270,50 @@ class Tree:
                 print("=" * 10, "Training classifier [{},{}]".format(i, j), "=" * 10)
                 self.train_classifier(i, j)
                 print('Training of classifier [{},{}] completed!'.format(i, j))
+
+    def test_classifier(self, i, j, testset):
+
+        self._check_is_configured()
+
+        testloader, _ = self._make_loaders(i, j, testset)
+
+        print("Loading classifier {}_{}...".format(i, j), end=' ')
+        self.load_model(i, j)
+        print("Done!")
+
+        possible_classes = self._get_classifier_classes(i, j)
+
+        right = 0
+        wrong = 0
+        right_notin = 0
+        wrong_notin = 0
+        total = 0
+
+        print("Testing...", end=' ')
+
+        with torch.no_grad():
+
+            for samples, labels in testloader:
+
+                for key in samples:
+                    samples[key] = samples[key].to(self.device)
+
+                labels = labels.to(self.device)
+
+                y_pred = self.classifier(**samples)
+
+                for n, choice in enumerate(y_pred.argmax(axis=1).tolist()):
+                    chosen_class = possible_classes[choice]
+                    other_class = possible_classes[not choice]
+
+                    right += labels[i] in chosen_class
+                    wrong += labels[i] in other_class
+                    right_notin += labels[i] > max(possible_classes[1]) and choice == 1
+                    wrong_notin += labels[i] < min(possible_classes[0]) and choice == 0
+
+                    total += 1
+
+        return right, wrong, right_notin, wrong
 
     def plot_tree(self):
 
