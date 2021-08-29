@@ -97,9 +97,11 @@ class Tree:
                 that the tree has associated to each class.
         '''
 
-        self.classifier.eval()
+        for key in inputs:
+            inputs[key] = inputs[key].to(self.device)
 
-        outputs = torch.empty(0, batchsize, 2)
+        outputs = torch.empty(0, batchsize, 2).to(self.device)
+
         with torch.no_grad():
             for i in range(self.n_layers):
                 n_classifiers = 2**i
@@ -118,12 +120,22 @@ class Tree:
     def load_model(self, i, j, initial=False):
         '''
         Load and return the state_dict of classifier{i}_{j}.
+        If initial=True, the initial state_dict is returned 
+        (i and j are ignored).
 
         Parameters
         --------------
-        i : int
 
-        j : int
+        i,j : int, int
+
+            The indexes of a classifier of the tree.
+
+        Return
+        ------
+
+        state_dict: dict
+
+            The state dict of classifier i,j, or the initial state dict if initial=True.
 
         '''
         if initial:
@@ -170,6 +182,52 @@ class Tree:
                   dataset_class_params=None,
                   loss_function=torch.nn.CrossEntropyLoss(),
                   batch_size=1, num_epochs=1, valid_period=1):
+        '''
+        Set the training algorithm and the hyperparameters. This method must be called
+        before calling training, testing, predicting methods of the tree object.
+
+        Parameters
+        ----------
+
+        optimizer : class 
+
+            One the pytorch optimizer classes (SGD, Adam, Momentum, ...). 
+            See `pytorch documentation <https://pytorch.org/docs/stable/optim.html>`_ for more details.
+
+        dataset_class : class
+
+            A pytorch custom dataset. A specific structure is required, you can 
+            see it in `RobertasTree documentation <https://github.com/lorenzosquadrani/RobertasTree#classification>`_.
+            For further details, also check `pytorch documentation <https://pytorch.org/tutorials/beginner/data_loading_tutorial.html>`_
+
+        scheduler : class
+
+            One of the pytorch scheduler classes.
+            See `pytorch documentation <https://pytorch.org/docs/stable/optim.html>`_ for more details.
+
+        optimizer_params : dict
+
+            The parameters passed to the optimizer when istantiating it.
+
+        scheduler_params : dict
+
+            The parameters passed to the scheduler when istantiating it.
+
+        dataset_class_params : dict
+
+            The parameters passed to the dataset when istantiating it.
+
+        loss_function : torch.nn.loss
+
+            An istance of a pytorch loss function. 
+            See `pytorch documentation <https://pytorch.org/docs/stable/nn.html#loss-functions>`_ for help.
+
+        batch_size : int
+
+        num_epochs : int
+
+        valid_period : int
+        '''
 
         self.optimizer = optimizer
         self.optimizer_params = optimizer_params if optimizer_params is not None else {}
