@@ -188,6 +188,7 @@ Configure and run the training.
    tree.train()
 
 That's it! To use the model for predictions just run:
+
 .. code-block:: python
 
    tree_output = tree.predict(input)

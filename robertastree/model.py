@@ -65,12 +65,36 @@ class Tree:
 
     def predict(self, inputs, batchsize=1, return_probabilities=False):
         '''
-        Given a batch of inputs, iteratively load all the classifiers
-        and compute their outputs.
+        Given a batch of inputs, iteratively load all the classifiers,
+        compute their outputs and return them. 
+        If return_probabilities is True, the outputs are used to compute
+        the probability of each class, and the probabilities are returned.
 
         Parameters
         ----------------
-        input : dict
+
+        inputs : dict
+
+            This variable will be passed to the Pytorch classifier 
+            as classifier(**inputs), hence the keys must correspond 
+            to the arguments of the forward function (ref).
+
+        Return
+        ------
+
+        if return_probabilities is False:
+
+            outputs : torch.tensor
+
+                The outputs of all the classifiers.
+                The shape of the tensor is (num_classifiers, batch_size, 2).
+
+        if return_probabilities is True:
+
+            probabilities : torch.tensor
+
+                A tensor of shape (num_classes,) containing the probability
+                that the tree has associated to each class.
         '''
 
         self.classifier.eval()
@@ -103,10 +127,10 @@ class Tree:
 
         '''
         if initial:
-            torch.load(self.models_path + 'initial_state', map_location=self.device)
+            return torch.load(self.models_path + 'initial_state', map_location=self.device)
         else:
-            torch.load(self.models_path + 'classifier' + str(i) + '_' + str(j) + '.bin',
-                       map_location=self.device)
+            return torch.load(self.models_path + 'classifier' + str(i) + '_' + str(j) + '.bin',
+                              map_location=self.device)
 
     def _get_classifier_classes(self, i, j):
 
@@ -197,7 +221,7 @@ class Tree:
         self._check_is_configured()
 
         # Reset the classifier to the initial state
-        self.load_model(i, j, initial=True)
+        self.classifier.load_state_dict(self.load_model(i, j, initial=True))
 
         # Prepare dataloaders, optimizer, lr scheduler
         trainloader, validloader = self._make_loaders(i, j, self.trainset, self.validset)
@@ -278,7 +302,7 @@ class Tree:
         testloader, _ = self._make_loaders(i, j, testset)
 
         print("Loading classifier {}_{}...".format(i, j), end=' ')
-        self.load_model(i, j)
+        self.classifier.load_state_dict(self.load_model(i, j))
         print("Done!")
 
         possible_classes = self._get_classifier_classes(i, j)

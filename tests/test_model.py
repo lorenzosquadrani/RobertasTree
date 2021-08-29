@@ -43,7 +43,7 @@ class toydataset(torch.utils.data.Dataset):
             torch.tensor(self.labels.iloc[idx])
 
 
-def test_model_initiliazation_and_load_model():
+def test_model_initiliazation():
 
     nclasses = 16
 
