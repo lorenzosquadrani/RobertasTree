@@ -8,13 +8,13 @@
      - Codacy
    * - `L. Squadrani <https://github.com/lorenzosquadrani>`_
      - TO DO
-     - |codacy badge|
+     - |quality badge| |coverage badge|
           
 
 .. raw:: html
 
    <a href="https://www.google.com/search?q=what+you+can+find+by+clicking+on+a+pear">
-      <img alt="A pear" width="100px" src="https://icons.iconarchive.com/icons/alex-t/fresh-fruit/256/pear-icon.png">
+      <img alt="A pear" width="100px" src="https://icons.iconarchive.com/icons/alex-t/fresh-fruit/256/pear-icon.png" style="float:right">
    </a>
    
 
@@ -244,5 +244,8 @@ References
 
 TO DO
 
-.. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/54f36e77426e4620b7dd9f8a1b184fbb
+.. |Quality Badge| image:: https://app.codacy.com/project/badge/Grade/54f36e77426e4620b7dd9f8a1b184fbb
    :target: https://www.codacy.com/gh/lorenzosquadrani/RobertasTree/dashboard?utm_source=github.com&utm_medium=referral&utm_content=lorenzosquadrani/RobertasTree&utm_campaign=Badge_Grade
+
+.. |Coverage Badge| image:: https://app.codacy.com/project/badge/Coverage/54f36e77426e4620b7dd9f8a1b184fbb
+   :target: https://www.codacy.com/gh/lorenzosquadrani/RobertasTree/dashboard?utm_source=github.com&utm_medium=referral&utm_content=lorenzosquadrani/RobertasTree&utm_campaign=Badge_Coverage)
