@@ -37,6 +37,7 @@ Each node of the tree correspond to a classifier trained to distinguish between 
 
 Such approach could be advantageous or disadvantageous according to your data. 
 In general, the advantages that you may get are the following (not verified, just guessing):
+
 -  as the same data are utilized to train different classifier on different binary class, a certain form of data augmentation is obtained.
 -  the number of parameters of the model are increased, without increasing overfitting risk (I hope).
 
@@ -215,9 +216,6 @@ If you want to go back to a numeric prediction, you can use our inferator:
 
    # TO DO
 
-
-
-
 Visualization
 -------------
 You can visualize the state of the tree to know the accuracy of each node.
@@ -228,6 +226,7 @@ For a simple text visualization run:
    tree.print_status()
 
 For a graphical representation run:
+
 .. code-block:: python
 
    tree.plot_tree()
@@ -235,12 +234,27 @@ For a graphical representation run:
 Testing
 ======
 
-TO DO
+RobertasTree code can be easily tested using pytest testing tool. 
+A large list of test can be found `here <https://github.com/lorenzosquadrani/RobertasTree/tree/main/tests>`_. 
+You can use the plugin pytest-cov (`documentation <https://pytest-cov.readthedocs.io/en/latest/>`_) to run all the tests and get a coverage report:
+
+.. code-block:: bash
+
+   pip install pytest-cov
+   
+   cd path/to/RobertasTree
+   
+   pytest --cov=robertastree tests/
+
 
 References
 ==========
 
-TO DO
+- `Pytorch documentation <https://pytorch.org/docs/stable/index.html>`_
+
+- `CommonLitReadibility competition page <https://www.kaggle.com/c/commonlitreadabilityprize>`_
+
+
 
 .. |Quality Badge| image:: https://app.codacy.com/project/badge/Grade/54f36e77426e4620b7dd9f8a1b184fbb
    :target: https://www.codacy.com/gh/lorenzosquadrani/RobertasTree/dashboard?utm_source=github.com&utm_medium=referral&utm_content=lorenzosquadrani/RobertasTree&utm_campaign=Badge_Grade
