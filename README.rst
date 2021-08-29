@@ -1,5 +1,9 @@
+.. raw:: html
 
-
+   <a href="https://www.google.com/search?q=what+you+can+find+by+clicking+on+a+pear">
+      <img alt="A pear" width="100px" src="https://icons.iconarchive.com/icons/alex-t/fresh-fruit/256/pear-icon.png" align="right">
+   </a> 
+   
 .. list-table::
    :header-rows: 1
 
@@ -9,18 +13,12 @@
    * - `L. Squadrani <https://github.com/lorenzosquadrani>`_
      - TO DO
      - |quality badge| |coverage badge|
-          
 
-.. raw:: html
 
-   <a href="https://www.google.com/search?q=what+you+can+find+by+clicking+on+a+pear">
-      <img alt="A pear" width="100px" src="https://icons.iconarchive.com/icons/alex-t/fresh-fruit/256/pear-icon.png" style="float:right">
-   </a>
    
-
 ############
 RobertasTree
-############
+############   
 
 RobertasTree is a framework to convert a Pytorch multi-class classifier into a tree-like deep learning model with better perfomances.
 
@@ -29,8 +27,8 @@ RobertasTree is a framework to convert a Pytorch multi-class classifier into a t
 
 
 Overview
-========
-
+========   
+   
 The idea behind RobertasTree is very simple and general.
 Consider a N-classes classification task, where N is a power of 2.
 This task can be decomposed in N-1 binary classification tasks, organized in a
