@@ -97,9 +97,6 @@ class Tree:
                 that the tree has associated to each class.
         '''
 
-        for key in inputs:
-            inputs[key] = inputs[key].to(self.device)
-
         outputs = torch.empty(batchsize, 0, 2).to(self.device)
 
         with torch.no_grad():
@@ -187,7 +184,8 @@ class Tree:
                   batch_size=1, num_epochs=1, valid_period=1):
         '''
         Set the training algorithm and the hyperparameters. This method must be called
-        before calling training methods of the tree object.
+        before calling training and testing methods of the tree object (however, you can
+        use it for predictions if the classifiers are already available).
 
         Parameters
         ----------
@@ -360,6 +358,30 @@ class Tree:
                 print('Training of classifier [{},{}] completed!'.format(i, j))
 
     def test_classifier(self, i, j, testset):
+        '''
+        Test the accuracy of classifier i,j on a new dataset. 
+        The function updates the tree status (the one print with print_status method),
+        and return the computed accuracy.
+
+        Parameters
+        ----------
+
+        i,j : int, int
+
+            The indexes denoting the classifier (see documentation for the indexing method)
+
+        testset : pd.DataFrame
+
+            The dataframe must contain a column of int named "label", which will be 
+            used as samples' labels.
+
+        Return
+        ------
+
+        accuracy : float
+        '''
+
+        self._check_is_configured()
 
         testloader, _ = self._make_loaders(i, j, testset)
 
