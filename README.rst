@@ -123,10 +123,10 @@ Here, I use a very simple feedforward neural network.
        def __init__(self):
            super(SimpleClassifier, self).__init__()
            
-           self.linear1 = torch.nn.Linear(784, 348)
-           self.linear2 = torch.nn.Linear(348, 10)
+           self.linear1 = torch.nn.Linear(784, 16)
+           self.linear2 = torch.nn.Linear(16, num_classes)
 
-           self.dropout = torch.nn.Dropout(0.2)
+           self.dropout = torch.nn.Dropout(0.1)
            self.relu = torch.nn.ReLU()
 
            
@@ -137,9 +137,9 @@ Here, I use a very simple feedforward neural network.
 
            return out
 
-   classifier = SimpleClassifier()
+   classifier = SimpleClassifier(num_classes=2)
 
-Also, we will need a Pytorch Dataset class (ref) to handle training.
+Also, we will need a Pytorch Dataset class (`Pytorch documentation <https://pytorch.org/tutorials/beginner/basics/data_tutorial.html>`_) to handle training.
 The __getitem__ function must return the inputs and the label in the form of tuple(dict, label).
 
 .. code-block:: python
@@ -231,6 +231,25 @@ For a graphical representation run:
 .. code-block:: python
 
    tree.plot_tree()
+
+
+Performances
+============
+
+We evaluated the performances of the classifier defined in previous :ref:`section<Usage>`, both using it on its own and in the tree embedding. 
+
+Here's the best result we got in both cases.
+
+.. csv-table::
+   :header: "", "simple model", "tree model"
+   :widths: 10, 10, 10
+
+   **accuracy (\%)**, 86.34, ?
+
+Here's the final accuracy of each classifier in the tree.
+
+Perfomances are comparable. There are no evidences that the tree structure enhance the model perfomances. Maybe this is why we lost the competition (forgot to mention?).
+We still believe the tree structure could gain some advantages on the single classifier, depending on the task and the available data. Maybe one day the pear will be mature.
 
 Testing
 ======

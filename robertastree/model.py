@@ -87,7 +87,7 @@ class Tree:
             outputs : torch.tensor
 
                 The outputs of all the classifiers.
-                The shape of the tensor is (num_classifiers, batch_size, 2).
+                The shape of the tensor is (batch_size,num_classifiers, 2).
 
         if return_probabilities is True:
 
@@ -100,17 +100,20 @@ class Tree:
         for key in inputs:
             inputs[key] = inputs[key].to(self.device)
 
-        outputs = torch.empty(0, batchsize, 2).to(self.device)
+        outputs = torch.empty(batchsize, 0, 2).to(self.device)
 
         with torch.no_grad():
+
             for i in range(self.n_layers):
+
                 n_classifiers = 2**i
+
                 for j in range(n_classifiers):
-                    print("DOING CLASSIFIER {}_{}".format(i, j))
+
                     self.classifier.load_state_dict(self.load_model(i, j))
 
                     output = self.classifier(**inputs)
-                    outputs = torch.cat([outputs, output.unsqueeze(axis=0)])
+                    outputs = torch.cat([outputs, output.unsqueeze(dim=1)], dim=1)
 
         if not return_probabilities:
             return outputs
@@ -184,7 +187,7 @@ class Tree:
                   batch_size=1, num_epochs=1, valid_period=1):
         '''
         Set the training algorithm and the hyperparameters. This method must be called
-        before calling training, testing, predicting methods of the tree object.
+        before calling training methods of the tree object.
 
         Parameters
         ----------
@@ -196,9 +199,11 @@ class Tree:
 
         dataset_class : class
 
-            A pytorch custom dataset. A specific structure is required, you can 
-            see it in `RobertasTree documentation <https://github.com/lorenzosquadrani/RobertasTree#classification>`_.
-            For further details, also check `pytorch documentation <https://pytorch.org/tutorials/beginner/data_loading_tutorial.html>`_
+            A pytorch custom dataset. 
+            The __getitem__ function must return the inputs and the label in the form of tuple(dict, label).
+            See `RobertasTree documentation <https://github.com/lorenzosquadrani/RobertasTree#classification>`_
+            for an example, and `pytorch documentation <https://pytorch.org/tutorials/beginner/data_loading_tutorial.html>`_
+            for further details.
 
         scheduler : class
 
@@ -293,9 +298,9 @@ class Tree:
 
         # Training loop
         self.classifier.train()
-        for epoch in range(self.num_epochs):
 
-            print("Starting EPOCH [{}]".format(epoch))
+        print("[epoch, batch/num_batches], trainloss, validloss, accuracy, best_validloss")
+        for epoch in range(self.num_epochs):
 
             train_loss = 0.
             epoch_step = 0
@@ -325,10 +330,10 @@ class Tree:
                     valid_loss, accuracy = self._validation_step(validloader)
 
                     # print summary
-                    print('Step: [{}/{}], train_loss: {:.4f}, valid_loss: {:.4f}, accuracy: {:.2f} %'
-                          .format(epoch_step * self.batch_size,
-                                  len(trainloader) * self.batch_size,
-                                  train_loss / epoch_step, valid_loss, accuracy))
+                    print('[{}, {}/{}], {:.4f}, {:.4f}, {:.2f} %, {:.4f}'
+                          .format(epoch, epoch_step,
+                                  len(trainloader),
+                                  train_loss / epoch_step, valid_loss, accuracy, best_valid_loss))
 
                     # checkpoint
                     if valid_loss < best_valid_loss:
@@ -338,64 +343,34 @@ class Tree:
                                    self.models_path + "classifier{}_{}.bin".format(i, j))
                         self.classifier_accuracy[2**i + j - 1] = accuracy
 
-            print("train loss: {:.4f}, best validation loss: {:.4f}".format(train_loss / epoch_step,
-                                                                            best_valid_loss))
-
             if self.scheduler is not None:
                 scheduler.step()
 
     def train(self):
 
+        self._check_is_configured()
+
         for i in range(self.n_layers):
+
             n_classifiers = 2**i
+
             for j in range(n_classifiers):
+
                 print("=" * 10, "Training classifier [{},{}]".format(i, j), "=" * 10)
                 self.train_classifier(i, j)
                 print('Training of classifier [{},{}] completed!'.format(i, j))
 
     def test_classifier(self, i, j, testset):
 
-        self._check_is_configured()
-
         testloader, _ = self._make_loaders(i, j, testset)
 
-        print("Loading classifier {}_{}...".format(i, j), end=' ')
         self.classifier.load_state_dict(self.load_model(i, j))
-        print("Done!")
 
-        possible_classes = self._get_classifier_classes(i, j)
+        _, accuracy = self._validation_step(testloader)
 
-        right = 0
-        wrong = 0
-        right_notin = 0
-        wrong_notin = 0
-        total = 0
+        self.classifier_accuracy[2**i + j - 1] = accuracy
 
-        print("Testing...", end=' ')
-
-        with torch.no_grad():
-
-            for samples, labels in testloader:
-
-                for key in samples:
-                    samples[key] = samples[key].to(self.device)
-
-                labels = labels.to(self.device)
-
-                y_pred = self.classifier(**samples)
-
-                for n, choice in enumerate(y_pred.argmax(axis=1).tolist()):
-                    chosen_class = possible_classes[choice]
-                    other_class = possible_classes[not choice]
-
-                    right += labels[i] in chosen_class
-                    wrong += labels[i] in other_class
-                    right_notin += labels[i] > max(possible_classes[1]) and choice == 1
-                    wrong_notin += labels[i] < min(possible_classes[0]) and choice == 0
-
-                    total += 1
-
-        return right, wrong, right_notin, wrong
+        return accuracy
 
     def plot_tree(self):
 

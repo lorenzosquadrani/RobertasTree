@@ -34,7 +34,7 @@ def get_probabilities(tree_outputs):
 
     for i in range(nclasses):
 
-        p = torch.ones(tree_outputs.shape[1])
+        p = torch.ones(tree_outputs.shape[1]).to(tree_outputs.device)
 
         # this are the decisions (0 or 1, left or right in the tree) which leads to choose the class i
         # note that they are simply the number i expressed in binary form, with nlayers fixed digits
