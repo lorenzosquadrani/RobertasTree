@@ -299,7 +299,7 @@ class Tree:
         # Training loop
         self.classifier.train()
 
-        print("[epoch, batch/num_batches], trainloss, validloss, accuracy, best_validloss")
+        print("[epoch, batch/num_batches]: trainloss | validloss | best_validloss | accuracy")
         for epoch in range(self.num_epochs):
 
             train_loss = 0.
@@ -330,14 +330,13 @@ class Tree:
                     valid_loss, accuracy = self._validation_step(validloader)
 
                     # print summary
-                    print('[{}, {}/{}], {:.4f}, {:.4f}, {:.2f} %, {:.4f}'
+                    print('[{:4d}, {:4d}/{:4d}]: {:5.4f} | {:5.4f} | {:5.2f}% | {:5.4f}'
                           .format(epoch, epoch_step,
                                   len(trainloader),
                                   train_loss / epoch_step, valid_loss, accuracy, best_valid_loss))
 
                     # checkpoint
                     if valid_loss < best_valid_loss:
-                        print("Saved model with best validation loss!")
                         best_valid_loss = valid_loss
                         torch.save(self.classifier.state_dict(),
                                    self.models_path + "classifier{}_{}.bin".format(i, j))
