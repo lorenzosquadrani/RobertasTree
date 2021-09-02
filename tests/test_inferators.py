@@ -34,7 +34,7 @@ def test_WeightedAverageInferator():
     '''
     positive unit test
 
-    Verify the function predict the correct value for a 
+    Verify the function predict the correct value for a
     specific input.
     '''
 

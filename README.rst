@@ -240,7 +240,7 @@ Performances
 
 We evaluated the performances of the classifier defined in section `Usage`_, both using it on its own and in the tree embedding. 
 
-Here's the best result we got in both cases.
+Here's the best result we got in both cases. Significant improvements of the classification accuracy could be obtained by embedding the original classifier in the RobertasTree.
 
 .. csv-table::
    :header: "", "simple model", "tree model"
@@ -248,11 +248,11 @@ Here's the best result we got in both cases.
 
    **accuracy (\%)**, 86.34, 94.02
 
-Significant improvements of the classification accuracy could be obtained by embedding the original classifier in the RobertasTree.
-Despite being encouraging, such result is far from being sufficient to establish the usefulness of RobertasTree.
+Despite being encouraging, such results are far from being sufficient to establish the usefulness of RobertasTree.
 Indeed, we lost the Kaggle competition (forgot to mention?), hence to me it was useless.
-The increment of performances in MNIST can be led back to the mere increment of parameters used by the model.
+The increment of performances in MNIST can be led back to the mere increment of the number of parameters used by the model.
 The same improvement could be obtained by adding some hidden units to the original classifier.
+
 Further and systematic tests should be designed, exploring differents tasks and data, seeing if the tree-like structure can get some results unaccessible to the single classifier.
 
 Testing

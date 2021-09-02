@@ -3,8 +3,7 @@ import numpy as np
 
 
 def get_probabilities(tree_outputs):
-    '''
-    Receive the output of a Tree object and return the probabilities associated to each class.
+    ''' Receive the output of a Tree object and return the probabilities associated to each class.
 
     Parameters
     ----------
@@ -75,8 +74,7 @@ def get_probabilities(tree_outputs):
 
 
 def WeightedAverageInferator(tree_outputs, classes):
-    '''
-    Elaborate the outputs of a RobertaTree model to infere the best value.
+    ''' Elaborate the outputs of a RobertaTree model to infere the best value.
 
     Parameters
     ----------

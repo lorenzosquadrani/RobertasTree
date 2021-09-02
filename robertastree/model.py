@@ -7,30 +7,31 @@ from robertastree.inferators import get_probabilities
 
 
 class Tree:
-
     '''
-    Main class of RobertasTree library. An object Tree is designed to handle
-    creation, training, predictions of all the binary classifiers.
+    Main class of RobertasTree library.
 
-    Parameters
-    ------------------
-    classifier : nn.Module
-        A custom Pytorch classifier (ref). 
-        If a cuda device is available, the classifier will be stored on GPU.
-
-    trainset : pd.DataFrame
-        The dataframe must contain a column of int named "label", which will be 
-        used as samples' labels.
-
-    validset : pd.DataFrame
-        The dataframe must contain a column of int named "label", which will be 
-        used as samples' labels.
-
-    models_path : str
+    The object Tree is designed to handle creation, training,
+    predictions of all binary classifiers.
     '''
 
-    def __init__(self, classifier, trainset, validset=None,
-                 models_path='./'):
+    def __init__(self, classifier, trainset, validset=None, models_path='./'):
+        '''
+        Parameters
+        ------------------
+        classifier : nn.Module
+            A custom Pytorch classifier (ref).
+            If a cuda device is available, the classifier will be stored on GPU.
+
+        trainset : pd.DataFrame
+            The dataframe must contain a column of int named "label", which will be
+            used as samples' labels.
+
+        validset : pd.DataFrame
+            The dataframe must contain a column of int named "label", which will be
+            used as samples' labels.
+
+        models_path : str
+        '''
 
         self.n_classes = len(trainset.label.unique())
         self.n_layers = int(np.log2(self.n_classes))
@@ -66,7 +67,7 @@ class Tree:
     def predict(self, inputs, return_probabilities=False):
         '''
         Given a batch of inputs, iteratively load all the classifiers,
-        compute their outputs and return them. 
+        compute their outputs and return them.
         If return_probabilities is True, the outputs are used to compute
         the probability of each class, and the probabilities are returned.
 
@@ -75,8 +76,8 @@ class Tree:
 
         inputs : dict
 
-            This variable will be passed to the Pytorch classifier 
-            as classifier(**inputs), hence the keys must correspond 
+            This variable will be passed to the Pytorch classifier
+            as classifier(**inputs), hence the keys must correspond
             to the arguments of the forward function (ref).
 
         Return
@@ -120,7 +121,7 @@ class Tree:
     def load_model(self, i, j, initial=False):
         '''
         Load and return the state_dict of classifier{i}_{j}.
-        If initial=True, the initial state_dict is returned 
+        If initial=True, the initial state_dict is returned
         (i and j are ignored).
 
         Parameters
@@ -190,14 +191,14 @@ class Tree:
         Parameters
         ----------
 
-        optimizer : class 
+        optimizer : class
 
-            One the pytorch optimizer classes (SGD, Adam, Momentum, ...). 
+            One the pytorch optimizer classes (SGD, Adam, Momentum, ...).
             See `pytorch documentation <https://pytorch.org/docs/stable/optim.html>`_ for more details.
 
         dataset_class : class
 
-            A pytorch custom dataset. 
+            A pytorch custom dataset.
             The __getitem__ function must return the inputs and the label in the form of tuple(dict, label).
             See `RobertasTree documentation <https://github.com/lorenzosquadrani/RobertasTree#classification>`_
             for an example, and `pytorch documentation <https://pytorch.org/tutorials/beginner/data_loading_tutorial.html>`_
@@ -222,7 +223,7 @@ class Tree:
 
         loss_function : torch.nn.loss
 
-            An istance of a pytorch loss function. 
+            An istance of a pytorch loss function.
             See `pytorch documentation <https://pytorch.org/docs/stable/nn.html#loss-functions>`_ for help.
 
         batch_size : int
@@ -359,7 +360,7 @@ class Tree:
 
     def test_classifier(self, i, j, testset):
         '''
-        Test the accuracy of classifier i,j on a new dataset. 
+        Test the accuracy of classifier i,j on a new dataset.
         The function updates the tree status (the one print with print_status method),
         and return the computed accuracy.
 
@@ -372,7 +373,7 @@ class Tree:
 
         testset : pd.DataFrame
 
-            The dataframe must contain a column of int named "label", which will be 
+            The dataframe must contain a column of int named "label", which will be
             used as samples' labels.
 
         Return

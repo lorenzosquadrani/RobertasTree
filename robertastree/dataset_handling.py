@@ -146,12 +146,12 @@ def from_range_to_classes(targets, n_classes, value_range=None):
     for i in range(n_classes):
         classes[str(i)] = (x[i], x[i + 1])
 
-    def get_class(value):
+    def _get_class(value):
         for key in classes:
             if (value >= classes[key][0] and value <= classes[key][1]):
                 return int(key)
         raise ValueError("Find a value out of range! I don't feel like going on...")
 
-    labels = targets.apply(get_class)
+    labels = targets.apply(_get_class)
 
     return labels, classes

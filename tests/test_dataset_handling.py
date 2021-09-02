@@ -14,9 +14,7 @@ import numpy as np
 # Testing function from_range_to_classes
 
 def test_correct_classes_and_labels():
-    '''
-    Positive unit test.
-    '''
+    '''Positive unit test.'''
 
     targets = pd.Series(np.arange(5, 100, 10))
     n_classes = 10
@@ -95,11 +93,7 @@ def test_correct_criteria():
 
 
 def test_correct_subdatasets():
-    '''
-    Positive unit test.
-
-
-    '''
+    '''Positive unit test.'''
 
     # create a toy dataset with labels 0,1,2,3 and number of samples n0,n1,n2,n3
     toy_dataset = pd.DataFrame()
