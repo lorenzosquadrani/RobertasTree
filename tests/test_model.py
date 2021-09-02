@@ -123,7 +123,10 @@ def test_model():
 
     model.train()
 
-    r, w, ro, wi = model.test_classifier(0, 0, trainset.copy())
+    accuracy = model.test_classifier(0, 0, trainset.copy())
 
     # the toy classifier always chose the second option
     # the samples are 4, and have labels 0,1,2,3
+    # the expected accuracy of classifier [0,0] is 50.0%
+
+    assert accuracy == 50.0

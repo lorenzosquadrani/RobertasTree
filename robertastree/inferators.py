@@ -10,15 +10,16 @@ def get_probabilities(tree_outputs):
     ----------
 
         tree_outputs: torch.Tensor
-            The result of Tree.predict(input). It is a tensor of shape (nclassifier,batchsize,2).
+
+            The result of Tree.predict(input). It is a tensor of shape (batchsize,num_classifiers,2).
 
     Return
     ------
 
-        probabilities: dict
-            A dict in which the keys are the classes' labels (0,1,2...,nclasses) and the values are
-            the probabilities the tree assigned to each class. 
-            Each value is a tensor of shape (batchsize,)
+        probabilities: torch.tensor
+
+            A tensor of shape (batchsize, num_classes), with the probabilities
+            that the tree assigned to each class.
     '''
 
     # tree_outputs has shape (n_classifiers, batchsize, 2)
@@ -34,26 +35,47 @@ def get_probabilities(tree_outputs):
 
     probabilities = torch.empty((batch_size, 0))
 
-    for i in range(nclasses):
+    for label in range(nclasses):
 
         p = torch.ones(batch_size).to(tree_outputs.device)
 
         # this are the decisions (0 or 1, left or right in the tree) which leads to choose the class i
         # note that they are simply the number i expressed in binary form, with nlayers fixed digits
         # ex. nlayers=3; i=0 decisions=[0,0,0], i=1 decisions=[0,0,1], ecc.
-        decisions_to_the_class = [int(x) for x in ('{:0' + str(nlayers) + 'b}').format(i)]
+        decisions_to_the_class = [int(x) for x in ('{:0' + str(nlayers) + 'b}').format(label)]
 
         for j in range(nlayers):
 
-            p *= normalized_outputs[j, :, decisions_to_the_class[j]]
+            classifier = 0
 
-        probabilities = torch.cat([probabilities, p.unsqueexe(dim=1)], dim=1)
+            for i in range(j):
+
+                classifier += 2**i
+
+            for i, decision in enumerate(reversed(decisions_to_the_class[:j])):
+
+                classifier += 2**i * decision
+
+            # consider class 010 = 2
+            # conditions: classifier[j=0]=0, classifier[j=1]=1, classifier[j=2]=4
+            # consider class 101 = 5
+            # conditions: classifier[j=0]=0, classifier[j=1]=2, classifier[j=2]=5
+            # 0 -> 1
+            # 1 -> 2
+            # 00 -> 3
+            # 01 -> 4
+            # 10 -> 5
+            # 11 -> 6
+
+            p *= normalized_outputs[:, classifier, decisions_to_the_class[j]]
+
+        probabilities = torch.cat([probabilities, p.unsqueeze(dim=1)], dim=1)
 
     return probabilities
 
 
 def WeightedAverageInferator(tree_outputs, classes):
-    ''' 
+    '''
     Elaborate the outputs of a RobertaTree model to infere the best value.
 
     Parameters
@@ -68,22 +90,25 @@ def WeightedAverageInferator(tree_outputs, classes):
     -------
       targets: torch.tensor
           The results of the regression, given by an average of the classes values,
-          weighted with the probabilities predicted by RobertasTree. 
+          weighted with the probabilities predicted by RobertasTree.
           It has shape (batchsize,).
     '''
 
     batchsize = tree_outputs.shape[0]
 
+    # probabilities shape (batchsize, num_classes)
     probabilities = get_probabilities(tree_outputs)
 
+    print(probabilities.shape)
+
     # get the mid point of the range of each class
-    classes_mean_value = {}
+    classes_mean_values = []
     for key in classes:
-        classes_mean_value[key] = (classes[key][0] + classes[key][1]) / 2
+        classes_mean_values.append((classes[key][0] + classes[key][1]) / 2)
 
     # regression: weighted average of the midpoints
     target = torch.zeros(batchsize)
-    for key in classes:
-        target += classes_mean_value[key] * probabilities[:, key].squeeze()
+    for i in range(len(classes)):
+        target += classes_mean_values[i] * probabilities[:, i].squeeze()
 
     return target

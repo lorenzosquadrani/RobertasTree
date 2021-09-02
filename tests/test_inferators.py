@@ -7,24 +7,27 @@ def test_get_probabilities():
     '''
     positive unit test
 
-    Verify that, if the outputs are all equal, the return probabilities
-    are all equal.
+    Verify that, for a given tree output, correct probabilities are given.
     '''
 
-    nclasses = 8
-    nclassifiers = nclasses - 1
-
-    tree_outputs = torch.ones((nclassifiers, 1, 2))
+    tree_outputs = torch.tensor([[
+        [0.2, 0.8],
+        [0.4, 0.6],
+        [0.12, 0.88]
+    ]])
 
     probabilities = get_probabilities(tree_outputs)
-    true_probabilities = torch.tensor([1. / nclasses for i in range(nclasses)])
 
-    assert list(probabilities.keys()) == list(range(nclasses))
+    normalized_outputs = torch.nn.functional.softmax(tree_outputs, dim=2)
 
-    assert probabilities[0].shape == (tree_outputs.shape[1],)
+    true_probabilities = torch.tensor([
+        [normalized_outputs[0, 0, 0] * normalized_outputs[0, 1, 0],
+         normalized_outputs[0, 0, 0] * normalized_outputs[0, 1, 1],
+         normalized_outputs[0, 0, 1] * normalized_outputs[0, 2, 0],
+         normalized_outputs[0, 0, 1] * normalized_outputs[0, 2, 1]]
+    ])
 
-    for i in range(nclasses):
-        assert probabilities[i] == true_probabilities[i]
+    assert torch.equal(probabilities, true_probabilities)
 
 
 def test_WeightedAverageInferator():
@@ -37,14 +40,19 @@ def test_WeightedAverageInferator():
 
     nclasses = 8
     nclassifiers = nclasses - 1
+    batchsize = 1
 
-    tree_outputs = torch.ones((nclassifiers, 1, 2))
+    # make outputs of the tree, all equals
+    tree_outputs = torch.ones((batchsize, nclassifiers, 2))
 
+    # the expected probabilities are all equal
     probabilities = np.array([1. / nclasses for i in range(nclasses)])
 
+    # some fake classes
     classes = dict([(i, (i, i + 1)) for i in range(8)])
     classes_midpoints = np.array([1 / 2 + i for i in range(nclasses)])
 
+    # the expected weighted average
     weighted_average = (probabilities * classes_midpoints).sum()
 
     predicted_value = WeightedAverageInferator(tree_outputs, classes)
@@ -63,7 +71,7 @@ def test_WeightedAverageInferator_output_shape():
     nclassifiers = nclasses - 1
     batchsize = 10
 
-    tree_outputs = torch.ones((nclassifiers, batchsize, 2))
+    tree_outputs = torch.ones((batchsize, nclassifiers, 2))
 
     classes = dict([(i, (i, i + 1)) for i in range(8)])
 
