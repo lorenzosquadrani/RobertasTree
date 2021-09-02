@@ -33,7 +33,7 @@ def get_probabilities(tree_outputs):
 
     batch_size = tree_outputs.shape[0]
 
-    probabilities = torch.empty((batch_size, 0))
+    probabilities = torch.empty((batch_size, 0)).to(tree_outputs.device)
 
     for label in range(nclasses):
 
