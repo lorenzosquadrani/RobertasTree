@@ -63,7 +63,7 @@ class Tree:
                                'Tree.configure before training or testing the classifiers. See ref'
                                ' for help.')
 
-    def predict(self, inputs, batchsize=1, return_probabilities=False):
+    def predict(self, inputs, return_probabilities=False):
         '''
         Given a batch of inputs, iteratively load all the classifiers,
         compute their outputs and return them. 
@@ -97,7 +97,7 @@ class Tree:
                 that the tree has associated to each class.
         '''
 
-        outputs = torch.empty(batchsize, 0, 2).to(self.device)
+        outputs = torch.empty(inputs.shape[0], 0, 2).to(self.device)
 
         with torch.no_grad():
 

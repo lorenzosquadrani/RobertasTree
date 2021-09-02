@@ -187,12 +187,14 @@ Configure and run the training.
 
    tree.train()
 
-That's it! To use the model for predictions just run:
+That's it! To use the model for class predictions just run:
 
 .. code-block:: python
+   
+   tree_output = tree.predict(input, return_probabilities=True)
 
-   tree_output = tree.predict(input)
-   # TO DO
+   # tree_output is a tensor of shape (batchsize, num_classes)
+   predicted_class = tree_output.argmax(axis=1)
 
 Regression
 ----------
@@ -206,16 +208,16 @@ You can convert the task to a classification task with an arbitrary number of cl
 
    dataset["label"], classes = from_range_to_classes(dataset['target'], 
                                                      n_classes=N,
-                                                   value_range=(a, b))
+                                                     value_range=(a, b))
 
-Then proceed to training following Classification section.
+Then proceed to training, as described in section `Classification`_.
 If you want to go back to a numeric prediction, you can use our inferator:
 
 .. code-block:: python
 
    from robertastree.inferators import WeightedAverageInferator
 
-   # TO DO
+   target = WeightedAverageInferator(tree.predict(input), classes)
 
 Visualization
 -------------
@@ -236,7 +238,7 @@ For a graphical representation run:
 Performances
 ============
 
-We evaluated the performances of the classifier defined in previous :ref:`section<Usage>`, both using it on its own and in the tree embedding. 
+We evaluated the performances of the classifier defined in section `Usage`_, both using it on its own and in the tree embedding. 
 
 Here's the best result we got in both cases.
 
@@ -244,19 +246,21 @@ Here's the best result we got in both cases.
    :header: "", "simple model", "tree model"
    :widths: 10, 10, 10
 
-   **accuracy (\%)**, 86.34, ?
+   **accuracy (\%)**, 86.34, 94.02
 
-Here's the final accuracy of each classifier in the tree.
-
-Perfomances are comparable. There are no evidences that the tree structure enhance the model perfomances. Maybe this is why we lost the competition (forgot to mention?).
-We still believe the tree structure could gain some advantages on the single classifier, depending on the task and the available data. Maybe one day the pear will be mature.
+Significant improvements of the classification accuracy could be obtained by embedding the original classifier in the RobertasTree.
+Despite being encouraging, such result is far from being sufficient to establish the usefulness of RobertasTree.
+Indeed, we lost the Kaggle competition (forgot to mention?), hence to me it was useless.
+The increment of performances in MNIST can be led back to the mere increment of parameters used by the model.
+The same improvement could be obtained by adding some hidden units to the original classifier.
+Further and systematic tests should be designed, exploring differents tasks and data, seeing if the tree-like structure can get some results unaccessible to the single classifier.
 
 Testing
 ======
 
 RobertasTree code can be easily tested using pytest testing tool. 
 A large list of test can be found `here <https://github.com/lorenzosquadrani/RobertasTree/tree/main/tests>`_. 
-You can use the plugin pytest-cov (`documentation <https://pytest-cov.readthedocs.io/en/latest/>`_) to run all the tests and get a coverage report:
+You can use the plugin pytest-cov (`documentation <https://pytest-cov.readthedocs.io/en/latest/>`_) to run all the tests and get a coverage report.
 
 .. code-block:: bash
 
