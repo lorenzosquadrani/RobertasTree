@@ -35,6 +35,11 @@ This task can be decomposed in N-1 binary classification tasks, organized in a
 tree-like structure like in figure.
 Each node of the tree correspond to a classifier trained to distinguish between progressively more specific classes: the first node decides if the input belongs to class {0,...,N/2-1} or {N/2,...,N}, the first node in the second layer decides if the input belongs to class {0,...,N/4-1} or {N/4,...,N/2}, and so on.
 
+.. image:: ./images/tree_plot.png
+   :width: 500px
+   :alt: Graphical representation of a tree model
+   :align: center
+
 Such approach could be advantageous or disadvantageous according to your data. 
 In general, the advantages that you may get are the following (not verified, just guessing):
 
@@ -232,7 +237,8 @@ For a graphical representation run:
 
 .. code-block:: python
 
-   tree.plot_tree()
+   fig = tree.plot_tree()
+   fig.show()
 
 
 Performances
