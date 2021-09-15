@@ -61,9 +61,9 @@ The classification results are then converted into regression results by a weigh
 Prerequisites
 =============
 
--  numpy
--  pandas
--  torch
+-  numpy >= 1.15
+-  pandas >= 1.2.4
+-  torch >= 1.8.1
 
 Installation
 ============

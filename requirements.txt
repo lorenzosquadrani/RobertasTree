@@ -1,4 +1,4 @@
 numpy>=1.15
-transformers
-torch
+pandas>=1.2.4
+torch>=1.8.1
 
