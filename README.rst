@@ -33,7 +33,7 @@ The idea behind RobertasTree is very simple and general.
 Consider a N-classes classification task, where N is a power of 2.
 This task can be decomposed in N-1 binary classification tasks, organized in a
 tree-like structure like in figure.
-Each node of the tree correspond to a classifier trained to distinguish between progressively more specific classes: the first node decides if the input belongs to class {0,...,n} or {n+1,...,N}, the first node in the second layer decides if the input belongs to class {0,...,d} or {d+1,...,n}, and so on.
+Each node of the tree correspond to a classifier trained to distinguish between progressively more specific classes: the first node decides if the input belongs to class {0,...,N/2-1} or {N/2,...,N}, the first node in the second layer decides if the input belongs to class {0,...,N/4-1} or {N/4,...,N/2}, and so on.
 
 Such approach could be advantageous or disadvantageous according to your data. 
 In general, the advantages that you may get are the following (not verified, just guessing):
@@ -42,13 +42,13 @@ In general, the advantages that you may get are the following (not verified, jus
 -  the number of parameters of the model are increased, without increasing overfitting risk (I hope).
 
 RobertasTree was born as a deep learning model to compete in the Kaggle competition `CommonLitReadibility <https://www.kaggle.com/c/commonlitreadabilityprize>`_.
-The first implementation was thus a task-specific, and was based on Roberta transformer (ref).
+The first implementation was thus a task-specific model based on Roberta transformer (ref).
 While the name remains RobertasTree, here we have tried to develop a general framework: custom classifier, dataset, training algorithm are allowed. 
 Of course, the main limitation is unchanged: the number of classes must be a power of 2.
 
 
-Since the CommonLitReadibility competition was a regression task, RobertasTree framework also inherited functions to covert a regression task in a classification tasks, and backward. 
-This first conversin is simply done by subdividing the target range in intervals and assigning a class labels to them.
+Since the CommonLitReadibility competition was a regression task, RobertasTree framework also inherited functions to convert a regression task into a classification tasks, and back. 
+This first conversion is simply done by subdividing the target range in intervals and assigning a class labels to them.
 The classification results are then converted into regression results by a weighted average of the intervals' mid values (where the weights are the predicted classes' probabilities).
 (see Usage section for clearness).
 

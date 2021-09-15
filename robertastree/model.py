@@ -394,32 +394,97 @@ class Tree:
 
         return accuracy
 
-    def plot_tree(self):
+    def plot_tree(self,
+                  box_color='lightsteelblue',
+                  border_color='cornflowerblue',
+                  border_width=8,
+                  fontsize=12,
+                  figsize=(10, 10)):
+        '''
+        Get a graphical representation of the tree.
 
-        radius = 0.08
+        Parameters
+        ----------
 
-        fig, ax = plt.subplots(figsize=(10, 10))
+        box_color : matplotlib compatible color format
+
+        border_color : matplotlib compatible color format
+
+        border_width : float
+
+        fontsize : float
+
+        figsize : tuple(float,float)
+
+        Return
+        ------
+
+        matplotlib.pyplot.figure
+        '''
+
+        fig, ax = plt.subplots(figsize=figsize)
         ax.axis('off')
 
-        index = 0
+        # Make slots for classifiers
+        height = 1. / (self.n_layers)
+        y = 1.
+
         for i in range(self.n_layers):
-            n_classifiers = 2**i
-            y = (1. / 4) * (3 - i)
-            for j in range(n_classifiers):
-                x = (1. / (n_classifiers + 1)) * (j + 1)
 
-                accuracy = self.classifier_accuracy[index]
-                index += 1
-                color = 'red' if accuracy == '?' else 'green'
+            y -= height
 
-                circle = plt.Circle((x, y), radius=radius, facecolor=color, alpha=0.5)
-                ax.add_patch(circle)
+            x = 0.
 
-                ax.annotate("{:.3}".format(accuracy), (x, y), fontsize=15, ha='center', va='center')
+            for j in range(2**i):
+
+                width = 1. / 2**i
+
+                cx = x + width / 2
+                cy = y + height / 2
+
+                class0, class1 = self._get_classifier_classes(i, j)
+
+                ax.text(
+                    cx, cy, "Classifier {}\n class 0: {}\n class 1: {}\n Accuracy {:.2f}"
+                    .format(i, class0, class1, self.classifier_accuracy[2**i - 1 + j]),
+                    ha="center", va="center", size=fontsize,
+                    bbox=dict(boxstyle="round,pad=1.",
+                              facecolor=box_color, edgecolor=border_color, lw=border_width)
+                )
+
+                x += width
+
+        # make lines between classifiers
+        num_classifiers = self.n_classes - 1
+        connected = [False for i in range(num_classifiers)]
+        for i in range(num_classifiers):
+
+            (x1, y1) = ax.texts[i].get_position()
+
+            count = 0
+
+            for j in range(1, num_classifiers):
+
+                if connected[j]:
+                    continue
+
+                if count == 2:
+                    break
+
+                connected[j] = True
+
+                (x2, y2) = ax.texts[j].get_position()
+
+                count += 1
+
+                ax.arrow(x1, y1, x2 - x1, y2 - y1)
 
         return fig
 
     def print_status(self):
+        '''
+        Print a text representation of the tree.
+        '''
 
         index = 0
 
