@@ -8,10 +8,8 @@
    :header-rows: 1
 
    * - Author
-     - Documentation
      - Codacy
    * - `L. Squadrani <https://github.com/lorenzosquadrani>`_
-     - TO DO
      - |quality badge| |coverage badge|
 
 
@@ -30,10 +28,10 @@ Overview
 ========   
    
 The idea behind RobertasTree is very simple and general.
-Consider a N-classes classification task, where N is a power of 2.
-This task can be decomposed in N-1 binary classification tasks, organized in a
+Consider a ``N``-classes classification task, where ``N`` is a power of ``2``.
+This task can be decomposed in `N-1` binary classification tasks, organized in a
 tree-like structure like in figure.
-Each node of the tree correspond to a classifier trained to distinguish between progressively more specific classes: the first node decides if the input belongs to class {0,...,N/2-1} or {N/2,...,N}, the first node in the second layer decides if the input belongs to class {0,...,N/4-1} or {N/4,...,N/2}, and so on.
+Each node of the tree correspond to a classifier trained to distinguish between progressively more specific classes: the first node decides if the input belongs to class ``{0, ..., N/2-1}`` or ``{N/2, ..., N}``, the first node in the second layer decides if the input belongs to class ``{0, ..., N/4-1}`` or ``{N/4, ..., N/2}``, and so on.
 
 .. image:: ./images/tree_plot.png
    :width: 500px
@@ -47,15 +45,14 @@ In general, the advantages that you may get are the following (not verified, jus
 -  the number of parameters of the model are increased, without increasing overfitting risk (I hope).
 
 RobertasTree was born as a deep learning model to compete in the Kaggle competition `CommonLitReadibility <https://www.kaggle.com/c/commonlitreadabilityprize>`_.
-The first implementation was thus a task-specific model based on Roberta transformer (ref).
+The first implementation was thus a task-specific model based on `Roberta transformer <https://arxiv.org/abs/1907.11692>`_.
 While the name remains RobertasTree, here we have tried to develop a general framework: custom classifier, dataset, training algorithm are allowed. 
-Of course, the main limitation is unchanged: the number of classes must be a power of 2.
+One limitation is unchanged: the number of classes must be a power of ``2``.
 
 
 Since the CommonLitReadibility competition was a regression task, RobertasTree framework also inherited functions to convert a regression task into a classification tasks, and back. 
 This first conversion is simply done by subdividing the target range in intervals and assigning a class labels to them.
-The classification results are then converted into regression results by a weighted average of the intervals' mid values (where the weights are the predicted classes' probabilities).
-(see Usage section for clearness).
+The classification results are then converted into regression results by a weighted average of the intervals' mid values, where the weights are the predicted probabilities for each class (see `Usage`_ section for details).
 
 
 Prerequisites
@@ -92,7 +89,7 @@ Usage
 Classification
 --------------
 
-Here there is the pipeline to apply RobertasTree on MNIST (ref) (I do not recommend to try it
+Here there is the pipeline to apply RobertasTree on `MNIST <http://yann.lecun.com/exdb/mnist/>`_ (I do not recommend to try it
 on your easy-running-out-of-memory laptop. Use Google Colab instead.).
 
 First we prepare the dataset.
@@ -117,7 +114,7 @@ First we prepare the dataset.
    from sklearn.model_selection import train_test_split
    trainset, validset = train_test_split(dataset, test_size = 1/6, random_state = 42)
 
-Before creating the tree, we have to define our custom Pytorch classifier (ref).
+Before creating the tree, we have to define our custom `Pytorch classifier <https://pytorch.org/tutorials/beginner/examples_nn/two_layer_net_module.html>`_.
 Here, I use a very simple feedforward neural network. 
 
 .. code-block:: python
@@ -145,7 +142,7 @@ Here, I use a very simple feedforward neural network.
    classifier = SimpleClassifier(num_classes=2)
 
 Also, we will need a Pytorch Dataset class (`Pytorch documentation <https://pytorch.org/tutorials/beginner/basics/data_tutorial.html>`_) to handle training.
-The __getitem__ function must return the inputs and the label in the form of tuple(dict, label).
+The ``__getitem__`` function must return the inputs and the label in the form of ``tuple(dict, label)``.
 
 .. code-block:: python
 
@@ -204,8 +201,8 @@ That's it! To use the model for class predictions just run:
 Regression
 ----------
 Suppose you have to tackle a regression task. 
-To each training sample a target in a certain value range (a,b) is assigned.
-You can convert the task to a classification task with an arbitrary number of classes N, using RobertasTree dataset utils.
+To each training sample a target in a certain value range ``(a,b)`` is assigned.
+You can convert the task to a classification task with an arbitrary number of classes ``N``, using RobertasTree dataset utils.
 
 .. code-block:: python
    
@@ -259,14 +256,14 @@ Indeed, we lost the Kaggle competition (forgot to mention?), hence to me it was 
 The increment of performances in MNIST can be led back to the mere increment of the number of parameters used by the model.
 The same improvement could be obtained by adding some hidden units to the original classifier.
 
-Further and systematic tests should be designed, exploring differents tasks and data, seeing if the tree-like structure can get some results unaccessible to the single classifier.
+Further and systematic tests should be designed, exploring differents tasks and data, in order to asses if the tree-like structure can get some results unaccessible to the single classifier.
 
 Testing
 ======
 
 RobertasTree code can be easily tested using pytest testing tool. 
 A large list of test can be found `here <https://github.com/lorenzosquadrani/RobertasTree/tree/main/tests>`_. 
-You can use the plugin pytest-cov (`documentation <https://pytest-cov.readthedocs.io/en/latest/>`_) to run all the tests and get a coverage report.
+You can use the plugin `pytest-cov` (`documentation <https://pytest-cov.readthedocs.io/en/latest/>`_) to run all the tests and get a coverage report.
 
 .. code-block:: bash
 
