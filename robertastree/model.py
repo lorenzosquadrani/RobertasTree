@@ -98,7 +98,7 @@ class Tree:
                 that the tree has associated to each class.
         '''
 
-        outputs = torch.empty(inputs.shape[0], 0, 2).to(self.device)
+        outputs = torch.empty(inputs[list(inputs.keys())[0]].shape[0], 0, 2).to(self.device)
 
         with torch.no_grad():
 
