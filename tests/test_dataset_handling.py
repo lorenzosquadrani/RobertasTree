@@ -10,8 +10,11 @@ from robertastree.dataset_handling import (
 import pandas as pd
 import numpy as np
 
+from hypothesis import given
+from hypothesis.strategies import lists, integers
 
 # Testing function from_range_to_classes
+
 
 def test_correct_classes_and_labels():
     '''Positive unit test.'''
@@ -41,7 +44,7 @@ def test_correct_classes_number():
     of classes specified in the argument 'n_classes'.
     '''
 
-    targets = pd.Series(np.random.random(100))
+    targets = pd.Series(np.ones(100))
     n_classes = 10
     _, classes = from_range_to_classes(targets=targets, n_classes=n_classes)
     assert n_classes == len(classes.keys())
@@ -49,7 +52,8 @@ def test_correct_classes_number():
 
 # Testing function balance_dataset
 
-def test_final_dataset_is_balanced():
+@given(x=lists(integers(min_value=0, max_value=9), min_size=100, max_size=500))
+def test_final_dataset_is_balanced(x):
     '''
     Positive unit test.
 
@@ -60,7 +64,7 @@ def test_final_dataset_is_balanced():
 
     dataset = pd.DataFrame()
 
-    dataset['label'] = pd.Series(np.random.randint(0, 10, 500))
+    dataset['label'] = pd.Series(x)
     counts = dataset.label.value_counts()
     mean_count = sum(counts) // len(counts)
 
